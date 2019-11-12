@@ -214,7 +214,6 @@ handle_html_form() {
             fi
         elif [ "$ttype" == "<input" ]; then
             itype=$( sed -n '/.*<[^>]*[^[:alnum:]]type="/{ s///; s/^\([^"]*\)".*/\1/; p;}' <<<"$hline" )
-            # we ignore the label for now, just use the name of the field as prompt
             if [ "$itype" == "text" -o "$itype" == "password" ]; then
                 readable_name=$( eval "echo \$label_$tname" 2> /dev/null )
                 : ${readable_name:="$tname"}
