@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<title>Fix Time Machine Sparsebundle NAS Based Backup Errors | Garth Gillespie</title>
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="stylesheet" type="text/css" media="all" href="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/style.css">
+<link rel="pingback" href="http://www.garth.org/xmlrpc.php">
+<link rel="alternate" type="application/rss+xml" title="Garth Gillespie » Feed" href="http://www.garth.org/feed">
+<link rel="alternate" type="application/rss+xml" title="Garth Gillespie » Comments Feed" href="http://www.garth.org/comments/feed">
+<link rel="alternate" type="application/rss+xml" title="Garth Gillespie » Fix Time Machine Sparsebundle NAS Based Backup Errors Comments Feed" href="http://www.garth.org/archives/2011,08,27,169,169.html/feed">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.garth.org/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.garth.org/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="iTunes Home Theater – How to integrate with iPad, iPhone, other iOS devices, AV Receiver and TV" href="http://www.garth.org/archives/2011,08,27,152,itunes-home-theater-how-to-integrate-with-ipad-iphone-other-ios-devices-av-receiver-and-tv.html">
+<link rel="next" title="So long Steve" href="http://www.garth.org/archives/2011,10,05,181,so-long-steve.html">
+<meta name="generator" content="WordPress 3.3-beta2-19181">
+<link rel="canonical" href="http://www.garth.org/archives/2011,08,27,169,169.html">
+<link rel="shortlink" href="http://www.garth.org/?p=169">
+<style type="text/css">div.socialicons{float:left;display:block;margin-right: 10px;}div.socialicons p{margin-bottom: 0px !important;margin-top: 0px !important;padding-bottom: 0px !important;padding-top: 0px !important;}</style>
+	<meta property="og:type" content="article">
+	<meta property="og:title" content="Fix Time Machine Sparsebundle NAS Based Backup Errors">
+	<meta property="og:url" content="http://www.garth.org/archives/2011,08,27,169,169.html">
+	</head>
+
+<body class="single single-post postid-169 single-format-standard">
+<div id="wrapper" class="hfeed">
+	<div id="header">
+<div id="adsense_top" style="margin: 0 0 0 100px;"><script type="text/javascript"><!--
+google_ad_client = "ca-pub-0424658781501535";
+/* garth.org Top */
+google_ad_slot = "9065964152";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/show_ads.js">
+</script></div>
+		<div id="masthead">
+			<div id="branding" role="banner">
+								<div id="site-title">
+					<span>
+						<a href="http://www.garth.org/" title="Garth Gillespie" rel="home">Garth Gillespie</a>
+					</span>
+				</div>
+				<div id="site-description">Journal/Blog/Whatever</div>
+
+										<img src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/path.jpg" alt="" height="198" width="940">
+								</div><!-- #branding -->
+
+			<div id="access" role="navigation">
+			  				<div class="skip-link screen-reader-text"><a href="#content" title="Skip to content">Skip to content</a></div>
+								<div class="menu"><ul><li><a href="http://www.garth.org/" title="Home">Home</a></li></ul></div>
+			</div><!-- #access -->
+		</div><!-- #masthead -->
+	</div><!-- #header -->
+
+	<div id="main">
+
+		<div id="container">
+			<div id="content" role="main">
+
+			
+
+				<div id="nav-above" class="navigation">
+					<div class="nav-previous"><a href="http://www.garth.org/archives/2011,08,27,152,itunes-home-theater-how-to-integrate-with-ipad-iphone-other-ios-devices-av-receiver-and-tv.html" rel="prev"><span class="meta-nav">←</span> iTunes Home Theater – How to integrate with iPad, iPhone, other iOS devices, AV Receiver and TV</a></div>
+					<div class="nav-next"><a href="http://www.garth.org/archives/2011,10,05,181,so-long-steve.html" rel="next">So long Steve <span class="meta-nav">→</span></a></div>
+				</div><!-- #nav-above -->
+
+				<div id="post-169" class="post-169 post type-post status-publish format-standard hentry category-general">
+					<h1 class="entry-title">Fix Time Machine Sparsebundle NAS Based Backup Errors</h1>
+
+					<div class="entry-meta">
+						<span class="meta-prep meta-prep-author">Posted on</span> <a href="http://www.garth.org/archives/2011,08,27,169,169.html" title="08:33:42" rel="bookmark"><span class="entry-date">27.Aug.11</span></a> <span class="meta-sep">by</span> <span class="author vcard"><a class="url fn n" href="http://www.garth.org/archives/author/garth" title="View all posts by Garth">Garth</a></span>					</div><!-- .entry-meta -->
+
+					<div class="entry-content">
+						<p><a href="http://www.garth.org/wp-content/uploads/2011/08/time-machine-icon.png"><img src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/time-machine-icon-150x150.png" alt="Time Machine" title="Time Machine" class="alignright size-thumbnail wp-image-150" height="150" width="150"></a></p>
+<p>This is a modification of an <a href="http://www.garth.org/archives/2010,07,16,124,fixing-time-machine-sparsebundle-network-backup-errors.html">original post</a>
+ for use when you have a corrupt sparsebundle backup on a NAS (as 
+opposed to an external drive attached to a router) and it needs to be 
+repaired.  The NAS is likely a hardware product from the likes of 
+Netgear, Synology, Buffalo or QNap – or for those of us with a 
+home-grown backup server running FreeNAS.</p>
+<p><i>Additionally, some parts of this post have been locally modified by JohnPC. Those parts are in italics, like this.</i></p>
+<p>The error you may see is “Time Machine completed a verification of 
+your backups. To improve reliability, Time Machine must create a new 
+backup for you.”  This can be fixed by following the below.</p>
+<p>From your Mac, connect to the network share that houses the sparsebundle. <i>If you do not know how to connect to that network share, don't worry, there are instructions on how to do that down below, after you opened Terminal.</i></p>
+<p>At the top level of the drive are the various sparsebundles that make up your individual computer backups.</p>
+<p>Do not double click on these sparsebundles or try to repair with Disk Utility.</p>
+<p>Open Terminal and then switch to root by <i>typing</i></p>
+<p><code><br>
+sudo -s<br>
+</code></p>
+<p>and then enter your password.</p>
+<p><i>If you didn't connect to the network share that houses the Time
+Machine backups yet, do the following: Open the backup menu with
+the TimeMachine icon, and click "Back Up Now".</i></p>
+<p><i>
+Alternatively, in the terminal, type:</i>
+<p><code><br>
+tmutil destinationinfo<br>
+tmutil startbackup --destination=</code><i><b>ID-OF-APPROPRIATE-TIMEMACHINE-DESTINAITON</b>
+</i></p>
+<p><i>(You get the ID of that TimeMachine Destination from the output of the first tmutil command)</i></p>
+
+<p><i>This will --  after a
+few seconds -- produce another popup with the "To improve reliability"
+message in it. Do not click anything yet. In your terminal window,
+type: 
+</i></p>
+<p><code><br>
+ls -la /Volumes/<br>
+</code></p>
+<p><i>
+This will show you a list of volumes present on your Mac. One of these is the name of the network share that houses your Time Machine backups, probably something like "com.apple.TimeMachine.TimeMachine-41234567-ABCD-1234-BCDE-01234567890A". Then type:
+</i></p>
+<p><code><br>
+cd /Volumes/{first part of the name of your network share}<TAB><br>
+</code></p>
+<p><i>(Be grateful for TAB completion here! :)</i></p>
+<p><i>You can now remove the warning window by clicking "back up later". The Time Machine network volume is now available on your Mac. You should be able to see a few .sparsebundle directories, including the directory for your own machine, if you type:
+</i></p>
+<p><code><br>
+ls -la<br>
+</code></p>
+<p>The verication that has already run has marked your sparsebundle as bad, so first we need to make it look normal.</p>
+<p>From the command line</p>
+<p><code><br>
+chflags -R nouchg /Volumes/{name of your network share}/{name of}.sparsebundle<br>
+</code></p>
+<p>This may take a little while.</p>
+<p>Now type</p>
+<p><code><br>
+hdiutil attach -nomount -noverify -noautofsck /Volumes/{name of your network share/{name of}.sparsebundle<br>
+</code></p>
+<p>You will then see something like<br>
+<code><br>
+/dev/diskx              Apple_partition_scheme<br>
+/dev/diskxs1            Apple_partition_map<br>
+/dev/diskxs2            Apple_HFSX<br>
+</code></p>
+<p>Where x is the disk id for the external disk. You are interested in 
+the one labeled Apple_HFSX or Apple_HFS. It might be 2, 3, 4 or higher. </p>
+<p>At this point, I have found that the filesystem check is already 
+happening.  You can check for activity by tail’ing the fsck_hfs.log</p>
+<p><i>
+(Actually - In newer MacOS the verfication doesn't automatically start, so skip a few steps in this description, and go straight to running "fsck_hfs" yourself)
+</i></p>
+<p><code><br>
+tail -f /var/log/fsck_hfs.log<br>
+</code></p>
+<p>If fsck is going then in my experience it will be able to repair the 
+sparsebundle.  Go away for a few hours and let it chug away.</p>
+<p>When it is done, you will either see </p>
+<p>‘The Volume was repaired successfully’</p>
+<p>or</p>
+<p>‘The Volume could not be repaired’</p>
+<p>If the latter you can run disk repair again:</p>
+<p><code><br>
+fsck_hfs -drfy /dev/diskxs2<br>
+</code></p>
+<p>Make sure to replace x with whatever number your disk is from the output above.</p>
+<p>The letters “drfy” tell the filecheck utility different things.  d 
+for ‘Show Debug’ –  r for ‘Rebuild Catalog Tree’ – f for ‘Force’ and y 
+for assume ‘yes’ to any prompts.</p>
+<p>Now go do something for an hour or two. Or twenty-four. Come back and </p>
+<p><code><br>
+tail -f /var/log/fsck_hfs.log<br>
+</code></p>
+<p>If all went well, the last output you will see is</p>
+<p>‘The Volume was repaired successfully’</p>
+<p>Now you need to type<br>
+<code><br>
+hdiutil detach /dev/diskxs2<br>
+</code></p>
+<p>You can redo the above for any other Time Machine sparse bundles you 
+have permission to modify while you have the network share attached to 
+your computer.</p>
+<p>Final step.</p>
+<p>When complete, you need to edit an plist file within the sparsebundle
+ that records the state of the backup.  On the top level of the 
+sparsebundle find a file called com.apple.TimeMachine.MachineID.plist.  
+Edit it and remove these two nodes</p>
+<p><code><br>
+        &lt;key&gt;RecoveryBackupDeclinedDate&lt;/key&gt;<br>
+        &lt;date&gt;{whatever-the-date}&lt;/date&gt;<br>
+</code></p>
+<p>Finally you want to change</p>
+<p><code><br>
+        &lt;key&gt;VerificationState&lt;/key&gt;<br>
+        &lt;integer&gt;2&lt;/integer&gt;<br>
+</code></p>
+<p>to<br>
+<code><br>
+        &lt;key&gt;VerificationState&lt;/key&gt;<br>
+        &lt;integer&gt;0&lt;/integer&gt;<br>
+</code></p>
+<p>Now you can eject the network share and have Time Machine give it 
+another go.  After the (long) verification step, backups should proceed 
+once again.</p>
+<p>Notes:</p>
+<p>Ideally this should be done over a gigabit wired network connection. 
+ Do not attempt using Wi-Fi.  You also want to make sure your machine 
+does not go to sleep during the above operation.</p>
+<div class="social4i" style="height:69px;">
+<div class="social4in" style="height:69px;float: left;">
+<div class="socialicons s4twitter" style="float:left;margin-right: 10px;"><a href="http://twitter.com/share" data-url="http://www.garth.org/archives/2011,08,27,169,169.html" data-counturl="http://www.garth.org/archives/2011,08,27,169,169.html" data-text="Fix Time Machine Sparsebundle NAS Based Backup Errors" class="twitter-share-button" data-count="vertical" data-via=""></a></div>
+<div class="socialicons s4fblike" style="float:left;margin-right: 10px;">
+<div id="fb-root"></div>
+<p><fb:like href="http%3A%2F%2Fwww.garth.org%2Farchives%2F2011%2C08%2C27%2C169%2C169.html" send="false" layout="box_count" width="55" height="62" show_faces="false" font=""></fb:like></p></div>
+<div class="socialicons s4plusone" style="float:left;margin-right: 10px;"><g:plusone size="tall" href="http://www.garth.org/archives/2011,08,27,169,169.html" count="true"></g:plusone></div>
+</div>
+<div style="clear:both"></div>
+</div>
+                                                                                        </div><!-- .entry-content -->
+
+
+					<div class="entry-utility">
+						This entry was posted in <a href="http://www.garth.org/archives/category/general" title="View all posts in General" rel="category tag">General</a>. Bookmark the <a href="http://www.garth.org/archives/2011,08,27,169,169.html" title="Permalink to Fix Time Machine Sparsebundle NAS Based Backup Errors" rel="bookmark">permalink</a>.											</div><!-- .entry-utility -->
+				</div><!-- #post-## -->
+
+				<div id="nav-below" class="navigation">
+					<div class="nav-previous"><a href="http://www.garth.org/archives/2011,08,27,152,itunes-home-theater-how-to-integrate-with-ipad-iphone-other-ios-devices-av-receiver-and-tv.html" rel="prev"><span class="meta-nav">←</span> iTunes Home Theater – How to integrate with iPad, iPhone, other iOS devices, AV Receiver and TV</a></div>
+					<div class="nav-next"><a href="http://www.garth.org/archives/2011,10,05,181,so-long-steve.html" rel="next">So long Steve <span class="meta-nav">→</span></a></div>
+				</div><!-- #nav-below -->
+
+				
+			<div id="comments">
+
+
+			<h3 id="comments-title">36 Responses to <em>Fix Time Machine Sparsebundle NAS Based Backup Errors</em></h3>
+
+
+			<ol class="commentlist">
+					<li class="comment even thread-even depth-1" id="li-comment-54013">
+		<div id="comment-54013">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/b3a76d97c2b1868723f1d432b5736519.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://bubbaduck.com/" rel="external nofollow" class="url">Dwayne Jeffrey</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54013">
+			07.Sep.11 at 14:14:46</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hey Garth-<br>
+I just found your post on Time Machine backup recovery. I’m now sitting 
+waiting on fsck**whatever to finish, but wanted to say that your blog 
+has gotten me farther that any other. Some guy on the Apple Group just 
+told me that my files are unrecoverable, and maybe they are, but I 
+haven’t been able to run fsck_hfs until I got your sequence of magical 
+Linux incantations. So lets wait and see and if it works, I owe you big 
+time for 3 years of Time Capsule recovered data. If not, no foul, no 
+blame. hahaha</p>
+<p>DJ in New Hampshire</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54052">
+		<div id="comment-54052">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/845b1d3c0fe2cfcf8b7ac6bdee0ec9dd.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Lujuba Yoku</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54052">
+			10.Sep.11 at 03:05:32</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks so much!</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54083">
+		<div id="comment-54083">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/55bda098e605f595c0dde69b0e95204d.jpg" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Chad</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54083">
+			12.Sep.11 at 06:00:49</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Brilliant.  Thanks a ton for the helpful post.  Backups are up and running again.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54085">
+		<div id="comment-54085">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/8d630cba074f429c6841b988ac80031c.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Antony Lau</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54085">
+			12.Sep.11 at 08:02:24</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks for your tutorial! It saved me from rebuilding the whole thing and losing a whole year backup of my iMac!</p>
+<p>Cheers,<br>
+Antony</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54112">
+		<div id="comment-54112">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/4eb77ebcd1b3b938fc9b5b712a13094f.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Art Isbell</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54112">
+			14.Sep.11 at 14:18:21</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>I’d like to echo the thanks offered by 
+the previous 4 posters!  Your good sleuth work figuring out the correct 
+Unix commands (Mac OS X is not Linux, Dwayne <img src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/icon_smile.gif" alt=":-)" class="wp-smiley">
+  , finding the necessary property list file in the sparse bundle 
+wrapper, and figuring out which property list file entries to delete and
+ modify seem to have saved my 2+ years of backups.</p>
+<p>However, my Lion system and Time Capsule backup behaved a little differently from your description.  After running the <code>hdiutil attach</code> command, the file system check did not automatically start, so I had to run the <code>fsck_hfs</code>
+ command manually (thanks for providing the correct command to use).  
+Apparently, my backup volume detached automatically after the file 
+system check completed, so running the <code>hdiutil detach</code> command produced a “device not found” error (not a problem).  The <code>tail</code> commands did not produce any output that wasn’t written to standard output of the terminal, so running <code>tail</code> was not necessary in my case.</p>
+<p>I hope that others who are experiencing this potentially devastating 
+Time Machine backup corruption problem will find this Web page and that 
+they are as successful as all of us so far have been.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54233">
+		<div id="comment-54233">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/d6f4850c9b10c8652c91fb3bbee9e342.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.thebestv2.com/" rel="external nofollow" class="url">Adam</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54233">
+			21.Sep.11 at 06:21:16</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>This article is now my saving grace.  
+Followed the instructions and was able to salvage my backups.  I have 6 
+months worth of backups, and I definitely did NOT want to lose them.</p>
+<p>The only thing worth clearing up is the bit about the 
+com.apple.TimeMachine.MachineID.plist modifications.  It took me a while
+ to research it, but you actually have to right click on the 
+.sparsebundle and view package contents to see that file.</p>
+<p>I let my backup run overnight and sure enough, all is well in Time Machine land.  THANK YOU.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54487">
+		<div id="comment-54487">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/41fca442061e27f77c7e0f9a8ea02b0e.jpg" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Pax</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54487">
+			03.Oct.11 at 04:04:40</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hi there!</p>
+<p>I’m stuck at</p>
+<blockquote>
+<p>At this point, I have found that the filesystem check is already 
+happening. You can check for activity by tail’ing the fsck_hfs.log</p>
+<p>tail -f /var/log/fsck_hfs.log</p>
+<p>If fsck is going then in my experience it will be able to repair the sparsebundle. Go away for a few hours and let it chug away.</p></blockquote>
+<p>I’m waiting for more than 15 hours… the terminal has this little 
+black spot in the big red one (at the top left). So I’m guessing it’s 
+doing its thing.</p>
+<p>Terminal says</p>
+<blockquote><p>
+Executing fsck_hfs (version diskdev_cmds-491.6~3).<br>
+QUICKCHECK ONLY; FILESYSTEM CLEAN</p></blockquote>
+<p>It previously said</p>
+<blockquote><p>~ PierreAxel$ fsck_hfs -rf /dev/disk1s2<br>
+** /dev/rdisk1s2<br>
+   Executing fsck_hfs (version diskdev_cmds-491.6~3).<br>
+** Checking Journaled HFS Plus volume.<br>
+   Invalid B-tree node size<br>
+(3, 0)<br>
+** The volume   could not be verified completely.
+</p></blockquote>
+<p>Should I add that I am using my Time Capsule’s HDD to wirelessly backup?<br>
+I hope someone will save my butt… thanks in advance.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-54507">
+		<div id="comment-54507">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54507">
+			04.Oct.11 at 15:14:40</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>when you saw this</p>
+<p>QUICKCHECK ONLY; FILESYSTEM CLEAN</p>
+<p>it means that the filesystem was mounting cleanly.</p>
+<p>the “invalid b-tree node size” may be one of those HFS errors that aren’t fixable.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54513">
+		<div id="comment-54513">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/ead8a488e9b8213c58bdc67b6d5a728c.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Lisa M.</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54513">
+			05.Oct.11 at 07:09:17</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hi, Garth:</p>
+<p>Thanks so much for providing this info– you’re awesome for posting 
+it!  But I can’t get it to work and need help desperately and obviously 
+Apple is clueless w/NAS drives.</p>
+<p>When I open Terminal and then try to switch to root by typing sudo su -<br>
+and then enter my password (not sure if the pw is typed right after the 
+su -) but tried it both ways– but all I get is a response that I don’t 
+need the admin PW or it just says root# again.  My husband does software
+ engineering and tried walking me through other options per your 
+instructions in Terminal but we got nowhere and couldn’t get anything to
+ run that should have happened.</p>
+<p>Would you have any suggestions at all?  Your blog is amazing and I wish you could post for Apple proper!  </p>
+<p>Thanks so much for any extra help!!  </p>
+<p>PS: My computer has brought this up twice now– the first time I did 
+the whole new backup and it worked fine for a few weeks (although I 
+figured it should have just discarded the oldest backups if the disk 
+were really full, which was what came up the first time– so I lost 
+everything short of the last few weeks, but not a big deal… yet… as long
+ as I don’t lose any more).  I do have what appears to be a good backup 
+when I go into the sparsebundle for this computer but have no idea how 
+to even save that last backup (if there is a way or if this is really a 
+backup at all) before possibly losing everything again.  I do have a 
+mirrored drive on my NAS but am guessing they’re both messed up somehow.
+  Also, I’m running 10.6.8 if that makes any difference since most 
+people seem to be getting this error w/Lion.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-54514">
+		<div id="comment-54514">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54514">
+			05.Oct.11 at 10:30:15</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>If you see ‘root#’ you have succeeded with the sudo command and can proceed with the rest of the instructions.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54548">
+		<div id="comment-54548">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/dba2b119717378d319f2477416781d48.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">chris</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54548">
+			07.Oct.11 at 20:52:23</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Garth based on the responses you seem to 
+be the only person that can fix my issue. I am getting a sparsebundle 
+error code (-1).  However I don’t even see a sparsebundle on the local 
+external disk.  At one time I was trying to do network backups but have 
+since reverted back to locally attached.  The backups are there because 
+time machine can restore files from the backup files.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54555">
+		<div id="comment-54555">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/72ff92836040cb3cc54d8b0ed7cca5fa.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Niklaus Schneeberger</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54555">
+			08.Oct.11 at 06:08:11</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks for the very useful tip. Unfortunately, I get the following result:</p>
+<p>hfs_UNswap_BTNode: invalid node height (1)<br>
+hfs_swap_HFSPlusBTInternalNode: catalog key #27 invalid length (0)<br>
+   Invalid key length</p>
+<p>What are my options now? I would be grateful for further advice.<br>
+Niklaus</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54560">
+		<div id="comment-54560">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/72ff92836040cb3cc54d8b0ed7cca5fa.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Niklaus Schneeberger</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54560">
+			08.Oct.11 at 12:53:36</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>My bad! I forgot the line with the chflags. With that included it works just fine.<br>
+Thanks again.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54614">
+		<div id="comment-54614">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/a30faf0965c3b546ce1989d40d1b6424.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Daniel</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54614">
+			12.Oct.11 at 10:00:07</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hi there!</p>
+<p>I followed all your instructions, but it won’t get through this following part:</p>
+<p>          /dev/rdisk1s3: fsck_hfs run at Tue Oct 11 20:00:25 2011<br>
+          /dev/rdisk1s3: ** /dev/rdisk1s3 (NO WRITE)<br>
+          /dev/rdisk1s3:    Executing fsck_hfs (version diskdev_cmds-540.1~34).<br>
+         QUICKCHECK ONLY; FILESYSTEM CLEAN</p>
+<p>It keeps repeating over and over, with 4 hours in between . I have 
+300GB of Backup, but it’s been nearly 24 hours and nothing happens.<br>
+If I skip this step, and go directly to editing the plist file, do you think it may work, or it HAS to be in order??<br>
+Thanks!</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor even thread-even depth-1" id="li-comment-54618">
+		<div id="comment-54618">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54618">
+			12.Oct.11 at 15:37:19</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>If it says the filesystem is clean – then
+ i would proceed to the next step.  But it could be another problem with
+ the backup that isn’t related to disk corruption.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54624">
+		<div id="comment-54624">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/7d28afe10d3264e8ad5fb3b2a39ef9cd.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://stephenhoward.com/" rel="external nofollow" class="url">Stephen Howard</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54624">
+			12.Oct.11 at 19:43:35</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>What if I’ve already copied my sparse 
+bundle to my desktop?  They did that at the Apple Store when they were 
+trying to get the data to migrate.  The sparse bundle won’t mount 
+though.  Thanks in advance.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54626">
+		<div id="comment-54626">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/5b92ca58ddfed58ba85d738ec2bfbaf2.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Greg A. Woods</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54626">
+			12.Oct.11 at 22:16:18</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Looks like someone else posted your article as their own:</p>
+<p><a href="http://www.netafp.com/fix-time-machine-sparsebundle-617/" rel="nofollow">http://www.netafp.com/fix-time-machine-sparsebundle-617/</a></p>
+<p>Thanks for this, BTW!  I knew there should be some way to try to fix 
+things up in most cases, but I was stumbling on finding all the right 
+steps.  I was missing out entirely on the <code>fsck</code> step — I 
+didn’t even guess it might be a necessary step given there were no 
+errors mentioned in any logs when I manually mounted the sparsebundle.</p>
+<p>Note for <code>fsck</code> to work on the backup volume on my Time Capsule, I found it was necessary to use the <code>-readwrite</code> option when attaching the volume with <code>hdiutil attach.</code></p><code>
+</code><p><code>Unfortunately in my case even after running </code><code>fsck</code> twice, the volume remains corrupted.</p>
+<p>Anyway why the heck couldn’t Apple have <code>backupd</code> automatically do one extra <code>fsck</code> like this just in hopes it might work?  It obviously works for some folks!</p>
+<p>There may be something else missing from your instructions as well.  I noted in the <code>system.log</code> that <code>backupd</code> had renamed the sparsebundle directory from <i>machine</i><code>.sparsebundle</code> to something like <i>machine_date-verification-failed</i><code>.sparsebundle</code>
+ right after the backup verification first failed.  I renamed it back to
+ what it was.  I don’t know if this was necessary, but it didn’t seem to
+ cause any problem either.  I also renamed it again to a unique name 
+after having no luck with the <code>fsck</code>, and re-locked the files that were locked with the <code>uchg</code> flag so as to preserve what I could of my older backups.</p>
+<p>BTW, I found this other post which suggests one can use the GUI to do the filesystem repair:</p>
+<p><a href="http://furrybeard.com/blog/tech/error-time-machine-completed-a-verification-of-your-backups-to-improve-reliability-time-machine-must-create-a-new-backup-for-you/" rel="nofollow">http://furrybeard.com/blog/tech/error-time-machine-completed-a-verification-of-your-backups-to-improve-reliability-time-machine-must-create-a-new-backup-for-you/</a></p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54677">
+		<div id="comment-54677">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/7be3f20bdc3a71e5bda3c4be555758b3.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">GBSNB</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54677">
+			16.Oct.11 at 06:18:20</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks, Helped a lot.<br>
+I’m using filevault, so backup was made only then I was restarting MacBookPro.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor even thread-even depth-1" id="li-comment-54698">
+		<div id="comment-54698">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54698">
+			17.Oct.11 at 23:13:49</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks for the heads up Greg – I just sent them a takedown notice.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54737">
+		<div id="comment-54737">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/fc3a3cc48a2eade1649a9e217d4c84a0.jpg" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Antoine</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54737">
+			20.Oct.11 at 06:15:48</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hi,</p>
+<p>Thank you very much for sharing this !</p>
+<p>However, I have a problem. I ran ‘fsck_hfs -drfy /dev/disk2s2′ three times but got the same result each time :<br>
+journal_replay(/dev/disk2s2) returned 0<br>
+** /dev/rdisk2s2<br>
+	Using cacheBlockSize=32K cacheTotalBlock=16384 cacheSize=524288K.<br>
+   Executing fsck_hfs (version diskdev_cmds-540.1~34).<br>
+** Checking Journaled HFS Plus volume.<br>
+** Detected a case-sensitive volume.<br>
+   The volume name is Copies de sauvegarde Time machine<br>
+** Checking extents overflow file.<br>
+** Checking catalog file.<br>
+** Rebuilding catalog B-tree.<br>
+hfs_UNswap_BTNode: invalid node height (1)<br>
+hfs_swap_HFSPlusBTInternalNode: catalog record #34 keyLength=105 expected=206<br>
+   Invalid key length<br>
+(4, 15270)<br>
+** The volume Copies de sauvegarde Time machine could not be repaired.<br>
+	volume type is pure HFS+<br>
+	primary MDB is at block 0 0×00<br>
+	alternate MDB is at block 0 0×00<br>
+	primary VHB is at block 2 0×02<br>
+	alternate VHB is at block 3902834718 0xe8a0881e<br>
+	sector size = 512 0×200<br>
+	VolumeObject flags = 0×07<br>
+	total sectors for volume = 3902834720 0xe8a08820<br>
+	total sectors for embedded volume = 0 0×00 </p>
+<p>Any idea why, and more important, how I could repair my Time Machine backup ? =/</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor even thread-even depth-1" id="li-comment-54840">
+		<div id="comment-54840">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54840">
+			25.Oct.11 at 23:02:12</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Those invalid key lengths sometimes can’t be fixed.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-54865">
+		<div id="comment-54865">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e74dd39d975f5f83f21dc0a893c18901.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Paul</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54865">
+			27.Oct.11 at 05:09:56</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hi</p>
+<p>Just to say, another grateful reader here. Process went surprisingly 
+quick, &lt;30mins total, with a 2011 iMac, 10.7.2 and Synology DS 409+</p>
+<p>The .plist nodes were labelled slightly differently, but still obvious.</p>
+<p>Hopefully it holds up…</p>
+<p>May not be connected, but this problem first occurred a few days 
+after I installed TimeMachine Editor (small freeware app for changing 
+the backup interval from default 60 mins). I've used it for a long time 
+with no issues under 10.6, but maybe it disagrees with 10.7? If the 
+problem reoccurs, I'll uninstall it and see if that makes a difference.</p>
+<p>Thanks again Garth, excellent work!</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54926">
+		<div id="comment-54926">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/ac104aeb14d5f1aab124ef359eac4c1a.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Staffan Magnéli</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54926">
+			30.Oct.11 at 13:06:49</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Hello and Help</p>
+<p>I try to follow your tut. but i get this Error.</p>
+<p>smi:~ staffanmagneli$ fsck_hfs -drfy /dev/disk2s2<br>
+journal_replay(/dev/disk2s2) returned 0<br>
+** /dev/rdisk2s2<br>
+	Using cacheBlockSize=32K cacheTotalBlock=16384 cacheSize=524288K.<br>
+   Executing fsck_hfs (version diskdev_cmds-540.1~25).<br>
+** Checking Journaled HFS Plus volume.<br>
+SearchTree(247):  height 0 != level 2<br>
+BTIterateRecord(946): returning fsBTInvalidNodeErr<br>
+   Catalog file entry not found for extent<br>
+(4, 0)<br>
+** The volume   could not be verified completely.<br>
+	volume check failed with error 7<br>
+	volume type is pure HFS+<br>
+	primary MDB is at block 0 0×00<br>
+	alternate MDB is at block 0 0×00<br>
+	primary VHB is at block 2 0×02<br>
+	alternate VHB is at block 3902834718 0xe8a0881e<br>
+	sector size = 512 0×200<br>
+	VolumeObject flags = 0×07<br>
+	total sectors for volume = 3902834720 0xe8a08820<br>
+	total sectors for embedded volume = 0 0×0</p>
+<p>Do you think you can help me, or is all hope lost ;(</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-54949">
+		<div id="comment-54949">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54949">
+			31.Oct.11 at 14:56:47</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>This error gets you into the ‘probably 
+not going to be salvageable’ area.  What this means is that the 
+filesystem thinks two files are occupying the same place on the 
+filesystem.   There are commands to identify the file and then delete it
+ – but ultimately it could be a file that you need and will cause 
+further problems down the line – especially with the amount of hard and 
+soft links that Time Machine does.</p>
+<p>For this error you are probably better off starting over.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-54965">
+		<div id="comment-54965">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/7d13ce6f90b7f6895f243bdcafe99200.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Westerley</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-54965">
+			01.Nov.11 at 12:43:14</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks VERY much – very helpful! <img src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/icon_smile.gif" alt=":-)" class="wp-smiley"> </p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-55000">
+		<div id="comment-55000">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/449ea361b25134361d23985cb8830ef2.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Tom Felner</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55000">
+			03.Nov.11 at 13:21:07</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks for the tutorial. After running “fsck_hfs -drfy /dev/disk1s2″ I get the following:</p>
+<p>journal_replay(/dev/disk1s2) returned 0<br>
+** /dev/rdisk1s2<br>
+	Using cacheBlockSize=32K cacheTotalBlock=32768 cacheSize=1048576K.<br>
+   Executing fsck_hfs (version diskdev_cmds-540.1~34).<br>
+** Checking Journaled HFS Plus volume.<br>
+** Detected a case-sensitive volume.<br>
+   The volume name is Time Machine-Backups<br>
+** Checking extents overflow file.<br>
+** Checking catalog file.<br>
+** Rebuilding catalog B-tree.<br>
+hfs_UNswap_BTNode: invalid node height (1)<br>
+** The volume Time Machine-Backups could not be repaired.<br>
+	volume type is pure HFS+<br>
+	primary MDB is at block 0 0×00<br>
+	alternate MDB is at block 0 0×00<br>
+	primary VHB is at block 2 0×02<br>
+	alternate VHB is at block 2147483582 0x7fffffbe<br>
+	sector size = 512 0×200<br>
+	VolumeObject flags = 0×07<br>
+	total sectors for volume = 2147483584 0x7fffffc0<br>
+	total sectors for embedded volume = 0 0×00 </p>
+<p>What does that mean? Is my backup hosed?</p>
+<p>Thanks<br>
+- Tom</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-55009">
+		<div id="comment-55009">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/5284840e04d3d0ff518a56cd080ec621.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Alan B</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55009">
+			04.Nov.11 at 03:24:55</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>I followed the instructions, although at 
+first it took forever to get the correct way to name the sparse bundle 
+in the end some on Readynas forums helped me, it has to be like this..<br>
+chflags -R nouchg /Volumes/ReadyNAS/Fred\ Smith\ office\’s\ iMac.sparsebundle<br>
+and it ran fine and fixed the errors but now 3 days later I got the same
+ error that Time machine couldn’t verify the backup and I need to start a
+ new one <img src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/icon_sad.gif" alt=":(" class="wp-smiley"><br>
+The error is<br>
+** Checking multi-linked files.<br>
+   Incorrect number of file hard links<br>
+** Checking catalog hierarchy.<br>
+so the same problem has occurred to the spars bundle.. I am running the 
+fix again but fear it will just be the same. Does anyone know why? is it
+ just Lion and ReadyNas? I never had this problem before.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-55051">
+		<div id="comment-55051">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/ec16402df282c0170ff7a00a6e169d29.jpg" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Jabbslad</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55051">
+			06.Nov.11 at 12:27:08</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Worked a treat! Thanks Garth!</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-55056">
+		<div id="comment-55056">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/1da7fbebaccd307ef76cf9792fca2b5f.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Brian Kendig</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55056">
+			06.Nov.11 at 20:00:49</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thank you for the terrific instructions! 
+One note I’d like to add: if you see a NO WRITE message in the log when 
+you attach the image, and it mounts read-only, and if you try to use the
+ -readwrite option it gives you a “permission denied” error … that 
+probably means that you’re connected to your NAS with an account that 
+doesn’t have write access to the backup image. This threw me for a loop,
+ I couldn’t figure out why I wasn’t allowed to have write access, until I
+ realized that I didn’tt have write permissions on the server itself. I 
+mounted the NAS drive with the proper account and all was well.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-55057">
+		<div id="comment-55057">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55057">
+			06.Nov.11 at 20:04:32</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Has the connection between the two been interrupted while a backup was going on.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor even thread-even depth-1" id="li-comment-55058">
+		<div id="comment-55058">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55058">
+			06.Nov.11 at 20:05:03</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Invalid node height errors are among those that are difficult to repair</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-55063">
+		<div id="comment-55063">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/6a289eb585bf7f76d79f698801170ff0.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Phil Ryan (Melbourne, Australia)</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55063">
+			07.Nov.11 at 01:29:52</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Garth… just wanted to say thanks for this
+ Blog post. There were a few similar things around on the Interwebs, but
+ yours was the most concise and best to follow. Worked a treat for me in
+ Lion (Mac OSX 10.7) with a Time Machine backup that had started life as
+ a Snow Leopard backup a few months earlier. Also, the backup was on a 
+QNAP 410 NAS, and so I was doing it all over a (wired) 100 Mbps network 
+connection. The backups with Time Machine have been good since then, 
+over a week ago.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-55081">
+		<div id="comment-55081">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/ff00deda53811ec120f2e79fc1e141b3.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Dave</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55081">
+			07.Nov.11 at 17:32:39</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>worked great, just had to make sure that the drive was unmounted first</p>
+<p>Thanks</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment odd alt thread-odd thread-alt depth-1" id="li-comment-55101">
+		<div id="comment-55101">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/c1804f539f6e538dd88d80e84e4d7cf1.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">Christof</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55101">
+			08.Nov.11 at 13:33:53</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Dear Garth,<br>
+thanks for this great resource, which I hope will work for me, too!<br>
+Since I am a novice to the terminal, may I ask you some questions that my seem silly to you:<br>
+1. When entering my own path in terminal, do the parentheses ({) in 
+“/Volumes/{name of your network share}/{name of}.sparsebundle” stay or 
+do they too get replaced by the names of my specific path?<br>
+Example: /Volumes/{TimeMachineNAS}/{Dr. B’s MacBook Pro}.sparsebundle 
+vs. /Volumes/TimeMachineNAS/Dr. B’s MacBook Pro.sparsebundle<br>
+2. Do I need to enter the name of the NAS storage device, too or just the share?<br>
+3. TimeMachine changed the name of my backup from “Dr. B’s MacBook Pro” 
+to “Dr. B’s MacBook Pro_2011-11-07-200244″. Do I use the original or the
+ new name?<br>
+4. What does it mean, when terminal returns a “&gt;” sign and does nothing else?<br>
+Thank you very much for your time and effort!<br>
+Sincerely, Christof</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment even thread-even depth-1" id="li-comment-55115">
+		<div id="comment-55115">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/3bb9042c0394aa000ebc2f4cb03174b3.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn">David</cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55115">
+			09.Nov.11 at 07:02:59</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>Thanks as well for this.  Oddly, after 
+fsck_hfs ran for me, it reported that my Time Machine Backups partition 
+was okay.  Still, the overall procedure got TM back up and running for 
+me without losing any of my backup history, so thanks once again!</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+	<li class="comment byuser comment-author-garth bypostauthor odd alt thread-odd thread-alt depth-1" id="li-comment-55139">
+		<div id="comment-55139">
+		<div class="comment-author vcard">
+			<img alt="" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/e157e13beec031c18c80c7431a9f2a8d.png" class="avatar avatar-40 photo" height="40" width="40">			<cite class="fn"><a href="http://www.garth.org/" rel="external nofollow" class="url">Garth</a></cite> <span class="says">says:</span>		</div><!-- .comment-author .vcard -->
+		
+		<div class="comment-meta commentmetadata"><a href="http://www.garth.org/archives/2011,08,27,169,169.html/comment-page-1#comment-55139">
+			10.Nov.11 at 07:55:23</a>		</div><!-- .comment-meta .commentmetadata -->
+
+		<div class="comment-body"><p>1 – Curly brackets should also be replaced.<br>
+2 – whatever the share name is that shows in the volumes directory is what you need to type<br>
+3 – you can rename the backup to the shorter version<br>
+4 – you might be using a different shell than bash-check your terminal preferences.</p>
+</div>
+
+		<div class="reply">
+					</div><!-- .reply -->
+	</div><!-- #comment-##  -->
+
+	</li>
+			</ol>
+
+
+
+								<div id="respond">
+				<h3 id="reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="http://www.garth.org/archives/2011,08,27,169,169.html#respond" style="display: none;">Cancel reply</a></small></h3>
+									<form action="http://www.garth.org/wp-comments-post.php" method="post" id="commentform">
+																			<p class="comment-notes">Your email address will not be published. Required fields are marked <span class="required">*</span></p>							<p class="comment-form-author"><label for="author">Name</label> <span class="required">*</span><input id="author" name="author" size="30" aria-required="true" type="text"></p>
+<p class="comment-form-email"><label for="email">Email</label> <span class="required">*</span><input id="email" name="email" size="30" aria-required="true" type="text"></p>
+<p class="comment-form-url"><label for="url">Website</label><input id="url" name="url" size="30" type="text"></p>
+												<p class="comment-form-comment"><label for="comment">Comment</label><textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>						<p class="form-allowed-tags">You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:  <code>&lt;a
+ href="" title=""&gt; &lt;abbr title=""&gt; &lt;acronym title=""&gt; 
+&lt;b&gt; &lt;blockquote cite=""&gt; &lt;cite&gt; &lt;code&gt; &lt;del 
+datetime=""&gt; &lt;em&gt; &lt;i&gt; &lt;q cite=""&gt; &lt;strike&gt; 
+&lt;strong&gt; </code></p>						<p class="form-submit">
+							<input name="submit" id="submit" value="Post Comment" type="submit">
+							<input name="comment_post_ID" value="169" id="comment_post_ID" type="hidden">
+<input name="comment_parent" id="comment_parent" value="0" type="hidden">
+						</p>
+						<p style="display: none;"><input id="akismet_comment_nonce" name="akismet_comment_nonce" value="876fad1660" type="hidden"></p>					</form>
+							</div><!-- #respond -->
+						
+</div><!-- #comments -->
+
+
+			</div><!-- #content -->
+		</div><!-- #container -->
+
+
+		<div id="primary" class="widget-area" role="complementary">
+			<ul class="xoxo">
+
+<li id="search-3" class="widget-container widget_search"><h3 class="widget-title">Search</h3><form role="search" method="get" id="searchform" action="http://www.garth.org/">
+	<div><label class="screen-reader-text" for="s">Search for:</label>
+	<input name="s" id="s" type="text">
+	<input id="searchsubmit" value="Search" type="submit">
+	</div>
+	</form></li><li id="calendar-3" class="widget-container widget_calendar"><h3 class="widget-title">&nbsp;</h3><div id="calendar_wrap"><table id="wp-calendar">
+	<caption>August 2011</caption>
+	<thead>
+	<tr>
+		<th scope="col" title="Sunday">S</th>
+		<th scope="col" title="Monday">M</th>
+		<th scope="col" title="Tuesday">T</th>
+		<th scope="col" title="Wednesday">W</th>
+		<th scope="col" title="Thursday">T</th>
+		<th scope="col" title="Friday">F</th>
+		<th scope="col" title="Saturday">S</th>
+	</tr>
+	</thead>
+
+	<tfoot>
+	<tr>
+		<td colspan="3" id="prev"><a href="http://www.garth.org/archives/2011/02" title="View posts for February 2011">« Feb</a></td>
+		<td class="pad">&nbsp;</td>
+		<td colspan="3" id="next"><a href="http://www.garth.org/archives/2011/10" title="View posts for October 2011">Oct »</a></td>
+	</tr>
+	</tfoot>
+
+	<tbody>
+	<tr>
+		<td colspan="1" class="pad">&nbsp;</td><td>1</td><td>2</td><td><a href="http://www.garth.org/archives/2011/08/03" title="Fix for FreeNAS 8 and Netatalk and 10.7 Lion Time Machine and AFP">3</a></td><td>4</td><td>5</td><td>6</td>
+	</tr>
+	<tr>
+		<td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td>
+	</tr>
+	<tr>
+		<td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td>
+	</tr>
+	<tr>
+		<td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td><a href="http://www.garth.org/archives/2011/08/27" title="iTunes Home Theater – How to integrate with iPad, iPhone, other iOS devices, AV Receiver and TV, Fix Time Machine Sparsebundle NAS Based Backup Errors">27</a></td>
+	</tr>
+	<tr>
+		<td>28</td><td>29</td><td>30</td><td>31</td>
+		<td class="pad" colspan="3">&nbsp;</td>
+	</tr>
+	</tbody>
+	</table></div></li>		<li id="recent-posts-3" class="widget-container widget_recent_entries">		<h3 class="widget-title">Recent Posts</h3>		<ul>
+				<li><a href="http://www.garth.org/archives/2011,10,17,184,smime-and-ios5-and-google-appsexchange-no-worky.html" title="S/Mime and iOS5 and Google Apps/Exchange – no worky">S/Mime and iOS5 and Google Apps/Exchange – no worky</a></li>
+				<li><a href="http://www.garth.org/archives/2011,10,05,181,so-long-steve.html" title="So long Steve">So long Steve</a></li>
+				<li><a href="http://www.garth.org/archives/2011,08,27,169,169.html" title="Fix Time Machine Sparsebundle NAS Based Backup Errors">Fix Time Machine Sparsebundle NAS Based Backup Errors</a></li>
+				<li><a href="http://www.garth.org/archives/2011,08,27,152,itunes-home-theater-how-to-integrate-with-ipad-iphone-other-ios-devices-av-receiver-and-tv.html" title="iTunes Home Theater – How to integrate with iPad, iPhone, other iOS devices, AV Receiver and TV">iTunes Home Theater – How to integrate with iPad, iPhone, other iOS devices, AV Receiver and TV</a></li>
+				<li><a href="http://www.garth.org/archives/2011,08,03,155,fix-for-freenas-8-and-netatalk-and-10-7-lion-time-machine-and-afp.html" title="Fix for FreeNAS 8 and Netatalk and 10.7 Lion Time Machine and AFP">Fix for FreeNAS 8 and Netatalk and 10.7 Lion Time Machine and AFP</a></li>
+				</ul>
+		</li><li id="ipv6detector" class="widget-container ipv6detector"><h3 class="widget-title">IPv6 detector</h3>Cool! you have got IPv6.<a href="http://log.patux.cl/whois.php?obj=2001:980:9010:1:cabc:c8ff:feda:37a2"> 2001:980:9010:1:cabc:c8ff:feda:37a2 </a><ul><li><a href="http://en.wikipedia.org/wiki/IPv4_address_exhaustion">IPv4 exhaustion</a></li><li><a href="http://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xml">IPv4 address allocation</a></li></ul><span id="bshow"><a href="#" onclick="showinfo('ipstat')">Show stats</a></span>
+        <div id="ipstat" style="display:none">
+                
+            <ul><li><span id="bhide"><a href="#" onclick="hideinfo('ipstat')">Hide stats</a></span><table border="0" cellpadding="0" cellspacing="1" width="100%">
+            <tbody><tr><td colspan="3">This server has received 35471 hits from both ipv4 and ipv6.</td></tr>
+            <tr><td width="35">IPv4</td><td width="25">98.4%</td><td width="100"><div style="margin-top:auto;margin-bottom:0px;background-color:red;height:15px;width:98.415607115672px"></div></td></tr>
+            <tr><td>IPv6</td><td>1.6%</td><td width="100"><div style="margin-top:auto;margin-bottom:0px;background-color:lightblue;height:15px;width:1.584392884328px"></div></td></tr>
+            </tbody></table></li></ul>
+            </div>
+            <script type="text/javascript">
+                lshow=document.getElementById('bshow');
+                lhide=document.getElementById('bhide');
+                function showinfo(obj) {
+                    o = document.getElementById(obj);
+                    o.style.display="";
+                    lhide.style.display="";
+                    lshow.style.display="none";
+                }
+
+                function hideinfo(obj) {
+                    o = document.getElementById(obj);
+                    o.style.display="none";
+                    lhide.style.display="none";
+                    lshow.style.display="";
+                }
+            </script></li><li id="text-3" class="widget-container widget_text"><h3 class="widget-title">Advertising</h3>			<div class="textwidget"><script type="text/javascript"><!--
+google_ad_client = "ca-pub-0424658781501535";
+/* garth.org right */
+google_ad_slot = "0809983052";
+google_ad_width = 200;
+google_ad_height = 200;
+//-->
+</script>
+<script type="text/javascript" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/show_ads.js">
+</script></div>
+		</li>			</ul>
+		</div><!-- #primary .widget-area -->
+
+
+		<div id="secondary" class="widget-area" role="complementary">
+			<ul class="xoxo">
+							</ul>
+		</div><!-- #secondary .widget-area -->
+
+	</div><!-- #main -->
+
+	<div id="footer" role="contentinfo">
+		<div id="colophon">
+
+
+
+			<div id="site-info">
+				<a href="http://www.garth.org/" title="Garth Gillespie" rel="home">
+					Garth Gillespie				</a>
+			</div><!-- #site-info -->
+
+			<div id="site-generator">
+								<a href="http://wordpress.org/" title="Semantic Personal Publishing Platform" rel="generator">Proudly powered by WordPress.</a>
+			</div><!-- #site-generator -->
+
+		</div><!-- #colophon -->
+	</div><!-- #footer -->
+
+</div><!-- #wrapper -->
+
+<script type="text/javascript" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/widgets.js"></script><script type="text/javascript" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/all.js"></script><script type="text/javascript" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/plusone.js"></script><script src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/FB.js" type="text/javascript"></script><script type="text/javascript" src="fix-time-machine-sparsebundle-nas-based-backup-errors_bestanden/in.js"></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-747815-1']);
+      _gaq.push(['_trackPageview']);
+      
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                      })();
+                      
+                      </script>
+
+
+</body></html>

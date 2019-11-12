@@ -1,0 +1,365 @@
+#!/bin/bash
+
+# minimum time certificate must be valid, in a format understood by apple's BSD date "-v" switch
+MINVALID="8H"
+
+error() {
+    echo "$@" 1>&2
+    exit -1
+}
+
+APP=/Applications/Viscosity.app
+[ -d "$APP" ] || error "You should have Viscosity installed"
+
+# where remote connections go
+REMOTE=vpn.xs4all.net
+# where we can download new connection lease
+VPNSITE=https://$REMOTE/
+# where Viscosity's connections live
+CONN_DIR="$HOME/Library/Application Support/Viscosity/OpenVPN"
+# where do downloaded profiles go
+DOWNLOAD_FOLDER=$HOME/Downloads
+
+[ -d "$DOWNLOAD_FOLDER" ] || error "You should have a downloads folder"
+
+# initialize $LF with a linefeed, for better readability in sed scripts
+LF='
+'
+
+setup_tempfiles() {
+    # setup temp files
+    conn_list=$( mktemp )
+    cookiejar=$( mktemp )
+    htmlout=$( mktemp )
+    controlout=$( mktemp )
+    form=$( mktemp )
+    datatmp=$( mktemp )
+    trap 'rm -f $conn_list $cookiejar $htmlout $controlout $form $datatmp; exit 0' 0 1 2 3 15
+}
+
+get_active_vpn_connections() {
+    # check if any connections are connected
+    osascript -e 'tell application "Viscosity" to return the name of connections where state is "Connected"' | \
+        sed "s/, /\\$LF/g" | egrep -v '^$' 
+}
+
+# scan connections. sets:
+# conn_name (name of vpn connection that we want to use)
+# enddate (date until this connection is valid)
+# expired_conn (path to connections that are expired)
+# old_conn_name (name of an (olmost) expired connection)
+# old_conn (path to an almost expired connection)
+scan_configured_vpn_connections() {
+    unset conn_name
+    unset old_conn
+    unset old_conn_name
+    unset expired_conn
+    local expired_conn_name
+    local conf
+    for conf in "$CONN_DIR"/*/config.conf
+    do
+        # skip unreadable files, or if glob doesn't match anything
+        if [ ! -r "$conf" ]; then
+            continue
+        fi
+        local this_remote=$( grep '^remote ' "$conf" | cut -d' ' -f2 )
+        if [ "$this_remote" == "$REMOTE" ]; then
+            local this_conn_name=$( sed -n '/^#viscosity name /s///p' "$conf" )
+            # verify end date
+            local certfile="${conf%config.conf}cert.crt"
+            [ -r "$certfile" ] || error "Cannot read $certfile"
+            enddate=$( openssl x509 -noout -enddate -in "$certfile" | sed 's/^notAfter=//' )
+            local endepoch=$( date -j -f '%b %d %T %Y %Z' "$enddate" +%s )
+            if [ $endepoch -lt $( date +%s ) ]; then
+                # this connection is really expired
+                expired_conn=("${expired_conn[@]}" "${conf%config.conf}")
+                expired_conn_name="$this_conn_name"
+                echo Expired conection $this_conn_name, expired at $enddate
+            elif [ $endepoch -lt $( date -v "+$MINVALID" +%s ) ]; then
+                # this connection almost expires
+                if [ -n "$old_conn_name" ]; then
+                    echo Huh? Multiple connections that are almost expired? Odd. Ingoring $old_conn_name
+                fi
+                old_conn_name="$this_conn_name"
+                old_conn="${conf%config.conf}"
+                echo Connection $old_conn_name is almost expired, at $enddate
+            else
+                if [ -n "$conn_name" ]; then
+                    echo Warning: multiple valid connections to $REMOTE, ignoring $conn_name
+                fi
+                conn_name="$this_conn_name"
+            fi
+            # if this connection is already connected, just exit: we cannot do anything
+            if fgrep -q -x -f "$conn_list" <<<"$this_conn_name"; then
+                echo $this_conn_name is already connected, and valid until $enddate. Stop.
+                if [ "$old_conn" == "$this_conn_name" ]; then
+                    echo Stop the connection if you want to refresh the lease.
+                fi
+                exit 0
+            fi
+        fi
+    done
+    : ${old_conn_name:="$expired_conn_name"}
+}
+
+download_new_profile() {
+    # fetch new VPN config
+
+    # try to collect sensible defaults, possibly from the old connection
+    unset default_profileId
+    default_displayName=$( hostname -s )
+    # if old_conn_name is known, try to extract default profile and name
+    if [ -n "$old_conn_name" ]; then
+        IFS=_ read oremote oprofile odate oname <<<"$old_conn_name"
+        default_profileId="$oprofile"
+        if [ -n "$oname" ]; then
+            default_displayName="$oname"
+        fi
+    fi
+    
+    # fetch pages until we have the ovpn file...
+    loc="$VPNSITE"
+    declare -a data
+    while true
+    do
+        curl -b $cookiejar -c $cookiejar -v -L "${data[@]}" -o $htmlout $loc 2> $controlout
+        # follow location
+        newloc=$( sed -n '/^< Location: /{ s///; s/[[:space:]]*$//; p; }' $controlout | tail -1 )
+        if [ -n "$newloc" ]; then
+            loc="$newloc"
+        fi
+
+        # get content-type
+        ct=$( sed -n '/^< [Cc]ontent-[Tt]ype: /{ s///; s/;.*//; s/[[:space:]]*$//; p;}' $controlout | tail -1 )
+        if [ "$ct" == "text/html" ] && grep -q '<form' $htmlout; then
+            # output the stuff before the form.
+            # in case of incorrect password, this also contains the error.
+            show_text_before_form < $htmlout
+            get_first_form < $htmlout > $form
+
+            # fetch the target of the form
+            faction=$( sed -n '/^.*<form[^>]* action="/{ s///; s/^\([^"]*\)".*/\1/; p;}' $form )
+            : ${faction:=$loc}
+            if [[ "$faction" =~ ^https?:/ ]]; then
+                loc="$faction"
+            elif [ "${faction:0:1}" == "/" ]; then
+                loc="${VPNSITE%/}$faction"
+            else
+                loc="${loc%$( basename $loc )}$faction"
+            fi
+
+            handle_html_form < $form > $datatmp || return 1
+            unset data
+            declare -a data
+            while read ditem; do
+                data=("${data[@]}" -d "$ditem")
+            done < $datatmp
+        elif [ "$ct" == "application/x-openvpn-profile" ]; then
+            # get the filename
+            ovpn_file=$( sed -n '/^< [Cc]ontent-[Dd]isposition:.*[^[:alnum:]]filename="/{ s///; s/^\([^"]*\)".*/\1/; p; }' $controlout | tail -1 )
+            if [ -z "$ovpn_file" ]; then
+                echo Warning: no filename given for ovpn download, determining a nice default
+                ovpn_file=${REMOTE}_${svalue}_$(date +%Y%m%d)_${dvalue}.ovpn
+            else
+                echo Given OpenVPN file: $ovpn_file
+            fi
+            new_vpn_profile="$DOWNLOAD_FOLDER/$ovpn_file"
+            mv $htmlout "$new_vpn_profile"
+            break
+        else
+            cat $controlout $htmlout
+            cp $controlout /tmp/xsvpn-err.out
+            cp $htmlout /tmp/xsvpn-err.html
+            echo ---
+            error Not a text/html form, and no ovpn file download. Giving up.
+        fi
+    done
+    return 0
+}
+
+show_text_before_form() {
+    # show stuff before form
+    # remove any menu in <ul> tag.
+    sed -n '/<form/q; /<body>/,${ /<ul[^>]*menu/,/<\/ul/d; s/<[^>]*>//g; s/^ *//; s/ *$//; /^$/d; p; }'
+}
+
+get_first_form() {
+    # get the first form, make sure all tags are on a single line
+    sed -n \
+    '/<\/form/q
+        /<form/,${
+            :line
+            /<[^>]*$/ {
+                N; s/\n/ /
+                t line
+            }
+            s/>\([^<]*\)</>\1\'"$LF"'</g
+            p
+        }'
+}
+
+handle_html_form() {
+    # process all input items in form, and output data for form submit
+    while read hline
+    do
+        ttype=$( egrep -o '.*<(input|/?select|option|label)' <<<"$hline" )
+        tname=$( sed -n '/.*<[^>]*[^[:alnum:]]name="/{ s///; s/^\([^"]*\)".*/\1/; p;}' <<<"$hline" )
+        tvalue=$( sed -n '/.*<[^>]*[^[:alnum:]]value="/{ s///; s/^\([^"]*\)".*/\1/; p;}' <<<"$hline" )
+        if [ "$ttype" == "<label" ]; then
+            lfor=$( sed -n '/.*<[^>]*[^[:alnum:]]for="/{ s///; s/^\([^"]*\)".*/\1/; p;}' <<<"$hline" )
+            # only remember labels with variable-worthy names
+            if egrep -q '^[a-zA-Z0-9_]+$' <<<"$lfor"; then
+                lname=$( sed 's/.*>//; s/[[:space:]]*$//' <<< "$hline" )
+                eval "label_$lfor='$lname'"
+            fi
+        elif [ "$ttype" == "<input" ]; then
+            itype=$( sed -n '/.*<[^>]*[^[:alnum:]]type="/{ s///; s/^\([^"]*\)".*/\1/; p;}' <<<"$hline" )
+            # we ignore the label for now, just use the name of the field as prompt
+            if [ "$itype" == "text" -o "$itype" == "password" ]; then
+                readable_name=$( eval "echo \$label_$tname" 2> /dev/null )
+                : ${readable_name:="$tname"}
+                echo -n $readable_name >&2
+                if [ "$itype" == "password" ]; then
+                    stty -echo < /dev/tty
+                fi
+                def=$( eval "echo \$default_$tname" 2> /dev/null )
+                if [ -n "$def" ]; then
+                    echo -n " [$def]" >&2
+                fi
+                echo -n "? " >&2
+                read dvalue < /dev/tty || return 1
+                : ${dvalue:="$def"}
+                if [ "$itype" == "password" ]; then
+                    stty echo < /dev/tty
+                    echo >&2
+                fi
+                echo "$tname=$dvalue"
+            elif [ "$itype" == "hidden" ]; then
+                echo "$tname=$tvalue"
+            else
+                error "Don't know how to handle <input type=$itype"
+            fi
+        elif [ "$ttype" == "<select" ]; then
+            unset seldata
+            unset seldefault
+            declare -a seldata
+            selname="$tname"
+            echo Please choose: >&2
+        elif [ "$ttype" == "<option" ]; then
+            seldata=("${seldata[@]}" "$tvalue")
+            def=$( eval "echo \$default_$selname" )
+            if [ -n "$def" -a "$def" == "$tvalue" ]; then
+                seldefault="$tvalue"
+            fi
+            optname=$( sed 's/.*>//; s/[[:space:]]*$//' <<<"$hline" )
+            echo . [$tvalue] $optname >&2
+        elif [ "$ttype" == "</select" ]; then
+            while true; do
+                readable_name=$( eval "echo \$label_$selname" 2> /dev/null )
+                : ${readable_name:="$selname"}
+                echo -n $readable_name >&2
+                if [ -n "$seldefault" ]; then
+                    echo -n " [$seldefault]" >&2
+                fi
+                echo -n "? " >&2
+                read svalue < /dev/tty || return 1
+                : ${svalue:="$seldefault"}
+                if fgrep -q -w "$svalue" <<<"${seldata[@]}"; then
+                    echo "$selname=$svalue"
+                    break
+                else
+                    echo Invalid choice, please choose one of: ${seldata[@]} >&2
+                fi
+            done
+        fi
+    done
+    return 0
+}
+
+# delete any expired connections
+delete_expired_connections() {
+    echo Stopping viscosity to remove expired connections
+    osascript -e 'tell application "Viscosity" to quit'
+    # allow viscosity some time to stop
+    sleep 1
+    for conn in "$@"; do
+        if [ -d "$conn" ]; then
+            echo Removing $conn
+            cd "$conn"
+            rm *
+            cd ..
+            rmdir $( basename "${conn%/}" )
+        else
+            echo $conn is not a valid directory
+        fi
+    done
+}
+
+# main program flow starts here
+setup_tempfiles
+get_active_vpn_connections > $conn_list
+if [ -s "$conn_list" ]; then
+    echo Notice: This is connected: $( cat "$conn_list" )
+fi
+
+scan_configured_vpn_connections
+if [ -n "$conn_name" ]; then
+    if [ ! -s "$conn_list" -a ${#expired_conn[@]} -gt 0 ]; then
+        delete_expired_connections "${expired_conn[@]}"
+        # restart Viscosity
+        open -a $APP
+        sleep 1
+    fi
+    echo Connecting $conn_name, which is valid until $enddate
+    osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
+    exit 0
+elif [ -z "$old_conn" ]; then
+    echo Notice: no valid connections to $REMOTE exist
+elif [ -s "$conn_list" ]; then
+    echo Only expired connections to $REMOTE, but some connections already active, cannot cleanup old $old_conn
+fi
+
+echo Downloading new VPN profile...
+if [ -n "$old_conn" ]; then
+    echo Abort with ^D if you want to use the old connection $old_conn_name
+fi
+if download_new_profile; then
+    # we got a new profile, any old profile can be added to the ones to delete
+    if [ -n "$old_conn" ]; then
+        expired_conn=("${expired_conn[@]}" "$old_conn")
+    fi
+    if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
+        delete_expired_connections "${expired_conn[@]}"
+    fi
+    # add new profile to connections
+    echo Importing new connection...
+    open -a "$APP" "$new_vpn_profile"
+    # wait some time until viscosity imported it
+    max_wait=30
+    while true; do
+        sleep 1
+        max_wait=$(( $max_wait - 1 ))
+        # rescan connections
+        scan_configured_vpn_connections
+        if [ -n "$conn_name" ]; then
+            break
+        elif [ $max_wait -le 0 ]; then
+            error "Error waiting for viscosity to import connection. Stop."
+        fi
+    done
+elif [ -n "$old_conn_name" ]; then
+    echo Download failed, using older connection $old_conn_name
+    conn_name="$old_conn_name"
+    if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
+        delete_expired_connections "${expired_conn[@]}"
+        open -a "$APP"
+        # allow viscosity some time to restart
+        sleep 1
+    fi
+else
+    error "Cannot download profile, and no usable older profile. Stop"
+fi
+
+# now connect this profile
+echo Connecting $conn_name
+osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'

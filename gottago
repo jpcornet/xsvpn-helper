@@ -1,0 +1,507 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+# XXX check destinations routed via VPN,
+# then refuse to disconnect VPN if anything is
+# still using it.
+# XXX if HDI image fails to eject, do not try to unmount underlying FS, but sleep and retry.
+
+my %opt;
+my %possible_opts = map { $_ => 1 } qw(now yes dry wait=);
+for my $arg ( @ARGV ) {
+    if ( exists $possible_opts{$arg} ) {
+        $opt{$arg} = 1;
+        next;
+    }
+    elsif ( $arg =~ s/=(.*)// ) {
+        my $argvalue = $1;
+        if ( exists $possible_opts{"$arg="} ) {
+            $opt{$arg} = $argvalue;
+            next;
+        }
+    }
+    die "What? $arg?\n";
+}
+
+# "now" means "do not wait"
+$opt{wait} = 0 if $opt{now};
+
+# check if a backup is running
+my $tm_status = tm_status();
+my $backup_was_running;
+if ( $tm_status->{Running} ) {
+    backup_running($tm_status);
+    $backup_was_running++;
+}
+else {
+    print "No backup running\n";
+}
+
+my $mountinfo = mount_info();
+if ( my @remfs = remote_fs($mountinfo) ) {
+    my $todo = remote_filesystems($mountinfo, @remfs);
+    if ( $todo and @$todo and ask("Unmount remote filesystems") ) {
+        for my $force ( 0, 1 ) {
+            process_todo($todo, $force);
+            if ( $opt{dry} ) {
+                print "(and pretending that worked)\n";
+                last;
+            }
+            $mountinfo = mount_info();
+            @remfs = remote_fs($mountinfo);
+            last if !@remfs;
+            $todo = remote_filesystems($mountinfo, @remfs);
+            last if !$todo or !@$todo;
+            if ( $force ) {
+                print "Argh, unmount failed, even with force\n";
+            }
+        }
+    }
+}
+else {
+    print "No remote filesystems\n";
+}
+
+my $externalinfo = ext_disk_info(mount_info());
+if ( $externalinfo ) {
+    print "There are external disks connected: ",
+        join(', ', map { $_->{mounted} ? @{$_->{mounted}} : $_->{device} } @$externalinfo), "\n";
+    if ( ask("Eject external disks") ) {
+        for my $e ( @$externalinfo ) {
+            if ( $e->{mounts} ) {
+                my $diskname = $e->{mounts}[0];
+                $diskname =~ s-^/Volumes/--;
+                do_cmd(qw(osascript -e), qq{tell application "Finder" to eject disk "$diskname"});
+            }
+            else {
+                do_cmd(qw(diskutil eject), $e->{device});
+            }
+            print "Ejected disk $e->{device}",
+                ($e->{mounted} ? "mounted on $e->{mounted}[0]" : ""),
+                "\n";
+        }
+    }
+}
+
+my $sshs = ssh_info();
+if ( $sshs and @$sshs ) {
+    while ( !ask("Terminate SSH connections") ) {
+        print "OK, do it yourself then\n";
+        sleep 1;
+        $sshs = ssh_info();
+        last if !$sshs or !@$sshs;
+    }
+    my $info_shown;
+    for my $pid ( @$sshs ) {
+        print "Killing SSH connections\n" if !$info_shown++;
+        do_cmd("kill $pid");
+    }
+}
+else {
+    print "No SSH connections\n";
+}
+
+my $vpn_info = vpn_info();
+if ( $vpn_info ) {
+    if ( ask("Disconnect VPN") ) {
+        for my $cnx_name ( @$vpn_info ) {
+            do_cmd(qw(osascript -e), qq{tell application "Viscosity" to disconnect "$cnx_name"});
+        }
+    }
+}
+else {
+    print "No VPN connection\n";
+}
+
+sub backup_running {
+    my $tm_status = shift;
+    print "A Time Machine backup is running\n";
+    my $do_wait;
+    if ( my $phase = $tm_status->{BackupPhase} ) {
+        print "Doing $phase\n";
+    }
+    my $pct;
+    if ( $pct = $tm_status->{Percent} and $pct >= 0 ) {
+        printf "At %2.1f%%\n", $pct * 100;
+    }
+    if ( $tm_status->{Progress} and my $remain = $tm_status->{Progress}{TimeRemaining} ) {
+        print "$remain seconds remaining\n";
+        if ( exists $opt{wait} and $remain < $opt{wait} ) {
+            $do_wait = 1;
+        }
+    }
+
+    if ( !defined $do_wait ) {
+        $do_wait = !ask("Abort running backup");
+    }
+    if ( ! $do_wait ) {
+        print "Aborting running backup\n";
+        do_cmd(qw(tmutil stopbackup));
+        if ( $opt{dry} ) {
+            print "(and pretending that worked...)\n";
+            return;
+        }
+    }
+    # XXX optionally implement via callbacks, and first check for other stuff
+    print STDERR "Waiting for backup to complete...";
+    while ( 1 ) {
+        my $sleeptime;
+        my $remaining;
+        if ( exists $tm_status->{Progress}{TimeRemaining} ) {
+            $remaining = $tm_status->{Progress}{TimeRemaining};
+            $sleeptime = int($remaining / 10);
+            $sleeptime = 15 if $sleeptime > 15;
+            $sleeptime = 1 if $sleeptime < 1;
+        }
+        else {
+            $sleeptime = 1;
+        }
+        print STDERR "\rWaiting for backup to complete... ($tm_status->{BackupPhase}";
+        if ( defined $remaining ) {
+            print STDERR ", $remaining s remaining)     ";
+        }
+        else {
+            print STDERR ")     ";
+        }
+        sleep $sleeptime;
+        $tm_status = tm_status();
+        last if !$tm_status->{Running};
+    }
+    print STDERR "\n";
+}
+
+sub mount_info {
+    my %minfo;
+    my @mountlines = do_qx('mount');
+    for ( @mountlines ) {
+        # skip "map" lines
+        next if /^map\s/;
+        if ( /^(\S+) on (\S.*) \(([^()]*)\)\s*$/ ) {
+            my ($dev, $mp, $flags) = ($1, $2, $3);
+            my @flags = split /,\s*/, $flags;
+            $minfo{$mp} = {
+                dev => $dev,
+                flags => { map { $_ => 1 } @flags },
+            };
+            if ( my $remote_info = remote_dev_info($dev) ) {
+                while ( my ($key, $val) = each %$remote_info ) {
+                    $minfo{$mp}{$key} = $val;
+                }
+            }
+        }
+    }
+    return \%minfo;
+}
+
+sub remote_fs {
+    my $minfo = shift;
+    return grep { !exists $minfo->{$_}{flags}{local} } keys %$minfo;
+}
+
+sub remote_dev_info {
+    my $devstr = shift;
+
+    if ( $devstr =~ m{//([^/]+)/(.*)} ) {
+        my ($remote, $vol) = ($1, $2);
+        my %rdev = (
+            remote        => $remote,
+            remote_volume => $vol,
+        );
+        if ( $remote =~ /^([^\@]+)\@(.*)$/ ) {
+            $rdev{remote_user} = $1;
+            $rdev{remote_host} = $2;
+        }
+        return \%rdev;
+    }
+    return;
+}
+
+sub is_same_mount {
+    my ($fs1, $fs2) = @_;
+
+    for my $key ( qw(remote remote_volume remote_user remote_host) ) {
+        return if exists $fs1->{$key} and !exists $fs2->{$key};
+        return if !exists $fs1->{$key} and exists $fs2->{$key};
+        return if exists $fs1->{$key} and exists $fs2->{$key} and $fs1->{$key} ne $fs2->{$key};
+    }
+    return 1;
+}
+
+sub process_todo {
+    my $todo = shift;
+    my $force = shift;
+    for my $entry ( @$todo ) {
+        if ( $entry->[0] eq 'eject' ) {
+            do_cmd("diskutil", "eject", $entry->[1]);
+        }
+        elsif ( $entry->[0] eq 'unmount' ) {
+            my @cmd = qw(diskutil unmount);
+            push @cmd, 'force' if $force;
+            push @cmd, $entry->[1];
+            do_cmd(@cmd);
+        }
+        else {
+            die "Internal error, unknown entry " . $entry->[0] . ". Abort";
+        }
+    }
+}
+
+sub remote_filesystems {
+    my $minfo = shift;
+    my @remfs = @_;
+    my @todo;
+    # also fetch HDI info, for any mounted images on remote filesystems
+    my $hdi_img = hdi_info();
+    my %remfs_shown;
+    # see if any images are mounted on remote filesystems.
+    for my $imgpath ( keys %$hdi_img ) {
+        my @remfs_mounts = sort { length($b) <=> length($a) or $a cmp $b }
+                           grep { $imgpath =~ m{^\Q$_\E/} } @remfs;
+        if ( @remfs_mounts > 1 and length($remfs_mounts[0]) == length($remfs_mounts[1]) ) {
+            # this is unlikely as it is, multiple @remfs_mounts, but this is hilarious
+            die "Do not understand multiple matches: " . join(', ', @remfs_mounts) . ". Aborting";
+        }
+        if ( @remfs_mounts ) {
+            my $name;
+            if ( exists $hdi_img->{$imgpath}{_MOUNTPOINTS} ) {
+                $name = $hdi_img->{$imgpath}{_MOUNTPOINTS}[0];
+                push @todo, [ eject => $name ];
+            }
+            else {
+                $name = "$imgpath (" . $hdi_img->{$imgpath}{_DISKS}[0]{dev} . ")";
+                push @todo, [ eject => $hdi_img->{$imgpath}{_DISKS}[0]{dev} ];
+            }
+            my $rvol_info = $minfo->{ $remfs_mounts[0] };
+            print "$name is an HDI image on remote volume $rvol_info->{remote_volume} of host $rvol_info->{remote_host}\n";
+            $remfs_shown{$remfs_mounts[0]}++;
+        }
+    }
+
+    # get destinationinfo, to know which filesystems belong to TimeMachine backups
+    my $destinfo = tm_destinfo();
+    my $has_tm_vol;
+    for my $rfs ( @remfs ) {
+        push @todo, [ unmount => $rfs ];
+        if ( grep { is_same_mount($minfo->{$rfs}, $_) } @$destinfo ) {
+            print "$rfs is a TimeMachine remote filesystem\n";
+            $remfs_shown{$rfs}++;
+            $has_tm_vol++;
+            # so make sure TimeMachine is stopped before unmounting
+            # XXX but currently, it always is
+        }
+    }
+
+    # if backup was running, and there are still backup filesystems mounted,
+    # wait 10 seconds and retry.
+    if ( $has_tm_vol and $backup_was_running ) {
+        print "Backup just finished, giving it 30 seconds to unmount filesystems by itself...\n";
+        sleep 30;
+        # make sure we don't get into the same situation again
+        $backup_was_running = 0;
+        return remote_filesystems($minfo, @remfs);
+    }
+
+    # show other remote filesystems
+    my @other_rfs = grep { !$remfs_shown{$_} } @remfs;
+    print( "Remote filesystems: ", join('; ', @other_rfs), "\n") if @other_rfs;
+
+    return \@todo;
+}
+
+sub ext_disk_info {
+    my $minfo = shift;
+
+    my @diskstat = do_qx(qw(diskutil list));
+    my @extinfo;
+    for my $i ( grep { $diskstat[$_] =~ m{^/dev/} } 0 .. $#diskstat ) {
+        my ($dev, $flags) = $diskstat[$i] =~ m{^(/dev/\S+)\s*\((.*)\):\s*$};
+        next if !defined $dev;
+        next unless $flags =~ /\bexternal\b/ and $flags =~ /\bphysical\b/;
+        my @mounted = grep { $minfo->{$_}{dev} =~ /^\Q$dev\E/ } keys %$minfo;
+        if ( !@mounted ) {
+            warn "Strange, an unmounted, but present, external disk? On $dev\n";
+            push @extinfo, { device => $dev };
+        }
+        else {
+            push @extinfo, { device => $dev, mounts => \@mounted };
+        }
+    }
+    return if !@extinfo;
+    return \@extinfo;
+}
+
+sub tm_status {
+    my @tm_stat = do_qx(qw(tmutil status));
+    my $ret = {};
+    my @fillstack;
+    my $fill;
+    for ( @tm_stat ) {
+        if ( /^\{\s*$/ ) {
+            $fill = $ret;
+            next;
+        }
+        elsif ( /^\s*\};?\s*$/ ) {
+            $fill = pop @fillstack;
+            next;
+        }
+        next if !$fill;
+
+        if ( m{^\s*
+               (?:"(?<key>[^"]+)"|(?<key>\w+))
+               \s*=\s*
+               (?:"(?<value>[^"]+)"|(?<value>\w+|\{))
+               \s*(;\s*)?$
+            }x )
+        {
+            my ($key, $value) = ($+{key}, $+{value});
+            if ( $value eq '{' ) {
+                $fill->{$key} = $value = {};
+                push @fillstack, $fill;
+                $fill = $value;
+            }
+            else {
+                $fill->{$key} = $value;
+            }
+        }
+        else {
+            warn "Do not understand line from tmutil status: $_\n";
+        }
+    }
+    return $ret;
+}
+
+sub tm_destinfo {
+    my $tm_str = do_qx(qw(tmutil destinationinfo));
+    my @chunks = split /^(?:> )?===+\r?\n/m, $tm_str;
+    shift @chunks if !$chunks[0];
+    my @ret;
+    for my $c ( @chunks ) {
+        my %cinfo;
+        for my $line ( split /\r?\n/, $c ) {
+            my ($key, $value) = $line =~ /^(\S(?:[^:]*\S)?)\s*:\s*(\S.*)$/;
+            if ( defined $key ) {
+                $cinfo{$key} = $value;
+                if ( $key eq 'URL' ) {
+                    if ( my $reminfo = remote_dev_info($value) ) {
+                        %cinfo = ( %cinfo, %$reminfo );
+                    }
+                }
+            }
+            else {
+                warn "Do not understand line from tmutil destinationinfo: $line\n";
+            }
+        }
+        push @ret, \%cinfo;
+    }
+    return \@ret;
+}
+
+sub hdi_info {
+    my $cmd_out = do_qx(qw(hdiutil info));
+    my @chunks = split /^===+$/m, $cmd_out;
+    # first chunk is meta-info
+    shift @chunks;
+    my %ret;
+    for my $c ( @chunks ) {
+        my %chunk;
+        for ( split /\r?\n/, $c ) {
+            if ( /^(\w(?:[^:]*\w))\s+:\s+(\S.*)?$/ ) {
+                $chunk{$1} = $2;
+            }
+            elsif ( m{
+                    ^(/dev\S+)
+                    (?:
+                        \s+
+                        (\S+)
+                        (?:
+                            \s+
+                            (\S.*)
+                        )?
+                    )?
+                    \s*
+                    $
+                    }x )
+            {
+                my ($device, $type, $mountpoint) = ($1, $2, $3);
+                my $disk = {
+                    dev => $device,
+                };
+                $disk->{type} = $type if defined $type;
+                $disk->{mountpoint} = $mountpoint if defined $mountpoint;
+
+                push @{ $chunk{_DISKS} }, $disk;
+                push @{ $chunk{_MOUNTPOINTS} }, $mountpoint if defined $mountpoint;
+            }
+            elsif ( length ) {
+                warn "Warning: Do not understand line from hdiutil info: $_\n";
+            }
+        }
+        if ( exists $chunk{"image-path"} ) {
+            my $path = $chunk{"image-path"};
+            if ( exists $ret{$path} ) {
+                die "AAARGH! Two disk images mounted with the same image path? I don't get it, abort";
+            }
+            $ret{ $path } = \%chunk;
+        }
+        else {
+            warn "WARNING: no image-path defined for this disk image:\n$c\n";
+        }
+    }
+    return \%ret;
+}
+
+sub ssh_info {
+    my @ssh_pids = do_qx(qw(pgrep -x ssh));
+    chomp @ssh_pids;
+    my @ret;
+    for my $pid ( @ssh_pids ) {
+        my $ssh_cmd = do_qx('ps', '-o', 'tt=,args=', '-p', $pid);
+        if ( $ssh_cmd ) {
+            chomp $ssh_cmd;
+            push @ret, $pid;
+            my ($tty, $ssh, $args) = split ' ', $ssh_cmd, 3;
+            print "There is an $ssh to $args on $tty\n";
+        }
+    }
+    return \@ret;
+}
+
+sub vpn_info {
+    my $cnx_name_line = do_qx(qw(osascript -e), q{tell application "Viscosity" to return name of connections where state is "Connected"});
+    chomp $cnx_name_line;
+    return if $cnx_name_line =~ /^\s*$/;
+    my @active_names = split /,\s*/, $cnx_name_line;
+    return \@active_names;
+}
+
+sub do_qx {
+    open my $fh, '-|', @_
+        or die "Cannot spawn $_[0]: $!\n";
+    return wantarray ? <$fh> : join('', <$fh>);
+}
+
+sub ask {
+    my $str = shift;
+
+    print STDERR "$str ? ";
+    if ( $opt{yes} ) {
+        print STDERR "Y\n";
+        return 1;
+    }
+    my $line = <STDIN>;
+    chomp $line;
+    return $line =~ /^\s*[yj]/i;
+}
+
+sub do_cmd {
+    if ( $opt{dry} ) {
+        print STDERR "WOULD run > @_\n";
+        return 0;
+    }
+    else {
+        print STDERR "> @_\n";
+        return system(@_);
+    }
+}
