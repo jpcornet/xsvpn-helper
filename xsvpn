@@ -22,6 +22,10 @@ DOWNLOAD_FOLDER=$HOME/Downloads
 
 [ -d "$DOWNLOAD_FOLDER" ] || error "You should have a downloads folder"
 
+# make sure files written are only readable by ourselves
+# (tempfiles contain username/otp password, ovpn file contains private key for connection)
+umask 077
+
 # initialize $LF with a linefeed, for better readability in sed scripts
 LF='
 '
