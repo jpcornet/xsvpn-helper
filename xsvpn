@@ -1,12 +1,32 @@
 #!/bin/bash
 
-# minimum time certificate must be valid, in a format understood by apple's BSD date "-v" switch
+# default minimum time certificate must be valid, in a format understood by apple's BSD date "-v" switch
 MINVALID="8H"
 
 error() {
     echo "$@" 1>&2
     exit -1
 }
+
+args=$( getopt hv: $* ) || error "Usage: xsvpn [-v validity]"
+set -- $args
+for i
+do
+    case "$i" in
+        -h)
+            error "Usage: xsvpn [-h] [-v validity]"
+            ;;
+        -v)
+            MINVALID=$2
+            shift
+            date -v "+$MINVALID" >/dev/null 2>&1 || error "Invalid time period $MINVALID"
+            ;;
+        --)
+            shift; break
+            ;;
+    esac
+    shift
+done
 
 APP=/Applications/Viscosity.app
 [ -d "$APP" ] || error "You should have Viscosity installed"
