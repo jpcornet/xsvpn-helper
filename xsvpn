@@ -370,7 +370,7 @@ if download_new_profile; then
             error "Error waiting for viscosity to import connection. Stop."
         fi
     done
-elif [ -n "$old_conn_name" ]; then
+elif [ -n "$old_conn" ]; then
     echo Download failed, using older connection $old_conn_name
     conn_name="$old_conn_name"
     if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
