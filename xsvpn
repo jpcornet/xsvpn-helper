@@ -2,24 +2,28 @@
 
 # default minimum time certificate must be valid, in a format understood by apple's BSD date "-v" switch
 MINVALID="8H"
+USEDEFAULTS=false
 
 error() {
     echo "$@" 1>&2
     exit -1
 }
 
-args=$( getopt hv: $* ) || error "Usage: xsvpn [-v validity]"
+args=$( getopt hfv: $* ) || error "Usage: xsvpn [-f] [-v validity]"
 set -- $args
 for i
 do
     case "$i" in
         -h)
-            error "Usage: xsvpn [-h] [-v validity]"
+            error "Usage: xsvpn [-h] [-f] [-v validity]"
             ;;
         -v)
             MINVALID=$2
             shift
             date -v "+$MINVALID" >/dev/null 2>&1 || error "Invalid time period $MINVALID"
+            ;;
+        -f)
+            USEDEFAULTS=true
             ;;
         --)
             shift; break
@@ -246,12 +250,18 @@ handle_html_form() {
                     stty -echo < /dev/tty
                 fi
                 def=$( eval "echo \$default_$tname" 2> /dev/null )
-                if [ -n "$def" ]; then
+                dvalue=
+                if [ -n "$def" ] && $USEDEFAULTS; then
+                    echo ": $def" >&2
+                    dvalue="$def"
+                elif [ -n "$def" ]; then
                     echo -n " [$def]" >&2
                 fi
-                echo -n "? " >&2
-                read dvalue < /dev/tty || return 1
-                : ${dvalue:="$def"}
+                if [ -z "$dvalue" ]; then
+                    echo -n "? " >&2
+                    read dvalue < /dev/tty || return 1
+                    : ${dvalue:="$def"}
+                fi
                 if [ "$itype" == "password" ]; then
                     stty echo < /dev/tty
                     echo >&2
@@ -280,16 +290,26 @@ handle_html_form() {
             while true; do
                 readable_name=$( eval "echo \$label_$selname" 2> /dev/null )
                 : ${readable_name:="$selname"}
+                svalue=
                 echo -n $readable_name >&2
-                if [ -n "$seldefault" ]; then
+                if [ -n "$seldefault" ] && $USEDEFAULTS; then
+                    echo ": $seldefault" >&2
+                    svalue="$seldefault"
+                elif [ -n "$seldefault" ]; then
                     echo -n " [$seldefault]" >&2
                 fi
-                echo -n "? " >&2
-                read svalue < /dev/tty || return 1
-                : ${svalue:="$seldefault"}
+                if [ -z "$svalue" ]; then
+                    echo -n "? " >&2
+                    read svalue < /dev/tty || return 1
+                    : ${svalue:="$seldefault"}
+                fi
                 if fgrep -q -w "$svalue" <<<"${seldata[@]}"; then
                     echo "$selname=$svalue"
                     break
+                elif $USEDEFAULTS; then
+                    # this should not happen.
+                    echo Argh, default $seldefault is not valid.
+                    USEDEFAULTS=false
                 else
                     echo Invalid choice, please choose one of: ${seldata[@]} >&2
                 fi
