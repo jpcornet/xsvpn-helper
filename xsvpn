@@ -5,7 +5,7 @@ MINVALID="8H"
 USEDEFAULTS=false
 
 error() {
-    echo "$@" 1>&2
+    printf "%s\n" "$@" 1>&2
     exit -1
 }
 
@@ -43,6 +43,8 @@ VPNSITE=https://$REMOTE/
 CONN_DIR="$HOME/Library/Application Support/Viscosity/OpenVPN"
 # where do downloaded profiles go
 DOWNLOAD_FOLDER=$HOME/Downloads
+# where we store the default username
+DEFAULT_USERNAME_FILE=$HOME/.xsvpn_user
 
 [ -d "$DOWNLOAD_FOLDER" ] || error "You should have a downloads folder"
 
@@ -102,26 +104,26 @@ scan_configured_vpn_connections() {
                 # this connection is really expired
                 expired_conn=("${expired_conn[@]}" "${conf%config.conf}")
                 expired_conn_name="$this_conn_name"
-                echo Expired conection $this_conn_name, expired at $enddate
+                printf "%s\n" "Expired conection $this_conn_name, expired at $enddate"
             elif [ $endepoch -lt $( date -v "+$MINVALID" +%s ) ]; then
                 # this connection almost expires
                 if [ -n "$old_conn_name" ]; then
-                    echo Huh? Multiple connections that are almost expired? Odd. Ingoring $old_conn_name
+                    printf "%s\n" "Huh? Multiple connections that are almost expired? Odd. Ingoring $old_conn_name"
                 fi
                 old_conn_name="$this_conn_name"
                 old_conn="${conf%config.conf}"
-                echo Connection $old_conn_name is almost expired, at $enddate
+                printf "%s\n" "Connection $old_conn_name is almost expired, at $enddate"
             else
                 if [ -n "$conn_name" ]; then
-                    echo Warning: multiple valid connections to $REMOTE, ignoring $conn_name
+                    printf "%s\n" "Warning: multiple valid connections to $REMOTE, ignoring $conn_name"
                 fi
                 conn_name="$this_conn_name"
             fi
             # if this connection is already connected, just exit: we cannot do anything
             if fgrep -q -x -f "$conn_list" <<<"$this_conn_name"; then
-                echo $this_conn_name is already connected, and valid until $enddate. Stop.
+                printf "%s\n" "$this_conn_name is already connected, and valid until $enddate. Stop."
                 if [ "$old_conn" == "$this_conn_name" ]; then
-                    echo Stop the connection if you want to refresh the lease.
+                    printf "%s\n" "Stop the connection if you want to refresh the lease."
                 fi
                 exit 0
             fi
@@ -143,6 +145,12 @@ download_new_profile() {
         if [ -n "$oname" ]; then
             default_displayName="$oname"
         fi
+    fi
+    # if DEFAULT_USERNAME_FILE exists, take default username from it
+    if [ -r $DEFAULT_USERNAME_FILE ]; then
+        default_userName=$( cat $DEFAULT_USERNAME_FILE )
+    else
+        default_userName=${USER:-$(whoami)}
     fi
     
     # fetch pages until we have the ovpn file...
@@ -186,10 +194,10 @@ download_new_profile() {
             # get the filename
             ovpn_file=$( sed -n '/^< [Cc]ontent-[Dd]isposition:.*[^[:alnum:]]filename="/{ s///; s/^\([^"]*\)".*/\1/; p; }' $controlout | tail -1 )
             if [ -z "$ovpn_file" ]; then
-                echo Warning: no filename given for ovpn download, determining a nice default
+                printf "%s\n" "Warning: no filename given for ovpn download, determining a nice default"
                 ovpn_file=${REMOTE}_${svalue}_$(date +%Y%m%d)_${dvalue}.ovpn
             else
-                echo Given OpenVPN file: $ovpn_file
+                printf "%s\n" "Given OpenVPN file: $ovpn_file"
             fi
             new_vpn_profile="$DOWNLOAD_FOLDER/$ovpn_file"
             mv $htmlout "$new_vpn_profile"
@@ -252,13 +260,13 @@ handle_html_form() {
                 def=$( eval "echo \$default_$tname" 2> /dev/null )
                 dvalue=
                 if [ -n "$def" ] && $USEDEFAULTS; then
-                    echo ": $def" >&2
+                    printf ": %s\n" $def >&2
                     dvalue="$def"
                 elif [ -n "$def" ]; then
-                    echo -n " [$def]" >&2
+                    printf " [%s]" "$def" >&2
                 fi
                 if [ -z "$dvalue" ]; then
-                    echo -n "? " >&2
+                    printf "? " >&2
                     read dvalue < /dev/tty || return 1
                     : ${dvalue:="$def"}
                 fi
@@ -266,9 +274,12 @@ handle_html_form() {
                     stty echo < /dev/tty
                     echo >&2
                 fi
-                echo "$tname=$dvalue"
+                printf "%s=%s\n" "$tname" "$dvalue"
+                if [ "$tname" == "userName" -a "$dvalue" != "$def" ]; then
+                    printf "%s\n" $dvalue > $DEFAULT_USERNAME_FILE
+                fi
             elif [ "$itype" == "hidden" ]; then
-                echo "$tname=$tvalue"
+                printf "%s=%s\n" "$tname" "$tvalue"
             else
                 error "Don't know how to handle <input type=$itype"
             fi
@@ -285,33 +296,33 @@ handle_html_form() {
                 seldefault="$tvalue"
             fi
             optname=$( sed 's/.*>//; s/[[:space:]]*$//' <<<"$hline" )
-            echo . [$tvalue] $optname >&2
+            printf "%s" ". [$tvalue] $optname" >&2
         elif [ "$ttype" == "</select" ]; then
             while true; do
                 readable_name=$( eval "echo \$label_$selname" 2> /dev/null )
                 : ${readable_name:="$selname"}
                 svalue=
-                echo -n $readable_name >&2
+                printf "%s" "$readable_name" >&2
                 if [ -n "$seldefault" ] && $USEDEFAULTS; then
-                    echo ": $seldefault" >&2
+                    printf ": %s\n" "$seldefault" >&2
                     svalue="$seldefault"
                 elif [ -n "$seldefault" ]; then
-                    echo -n " [$seldefault]" >&2
+                    printf " [%s]" "$seldefault" >&2
                 fi
                 if [ -z "$svalue" ]; then
-                    echo -n "? " >&2
+                    printf "? " >&2
                     read svalue < /dev/tty || return 1
                     : ${svalue:="$seldefault"}
                 fi
                 if fgrep -q -w "$svalue" <<<"${seldata[@]}"; then
-                    echo "$selname=$svalue"
+                    printf "%s=%s\n" "$selname" "$svalue"
                     break
                 elif $USEDEFAULTS; then
                     # this should not happen.
                     echo Argh, default $seldefault is not valid.
                     USEDEFAULTS=false
                 else
-                    echo Invalid choice, please choose one of: ${seldata[@]} >&2
+                    printf "%s\n" "Invalid choice, please choose one of: ${seldata[@]}" >&2
                 fi
             done
         fi
@@ -327,13 +338,13 @@ delete_expired_connections() {
     sleep 1
     for conn in "$@"; do
         if [ -d "$conn" ]; then
-            echo Removing $conn
+            printf "%s\n" "Removing $conn"
             cd "$conn"
             rm *
             cd ..
             rmdir $( basename "${conn%/}" )
         else
-            echo $conn is not a valid directory
+            printf "%s\n" "$conn is not a valid directory"
         fi
     done
 }
@@ -342,7 +353,7 @@ delete_expired_connections() {
 setup_tempfiles
 get_active_vpn_connections > $conn_list
 if [ -s "$conn_list" ]; then
-    echo Notice: This is connected: $( cat "$conn_list" )
+    printf "%s\n" "Notice: This is connected: "$( cat "$conn_list" )
 fi
 
 scan_configured_vpn_connections
@@ -353,18 +364,18 @@ if [ -n "$conn_name" ]; then
         open -a $APP
         sleep 1
     fi
-    echo Connecting $conn_name, which is valid until $enddate
+    printf "%s\n" "Connecting $conn_name, which is valid until $enddate"
     osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
     exit 0
 elif [ -z "$old_conn" ]; then
-    echo Notice: no valid connections to $REMOTE exist
+    printf "%s\n" "Notice: no valid connections to $REMOTE exist"
 elif [ -s "$conn_list" ]; then
-    echo Only expired connections to $REMOTE, but some connections already active, cannot cleanup old $old_conn
+    printf "%s\n" "Only expired connections to $REMOTE, but some connections already active, cannot cleanup old $old_conn"
 fi
 
 echo Downloading new VPN profile...
 if [ -n "$old_conn" ]; then
-    echo Abort with ^D if you want to use the old connection $old_conn_name
+    printf "%s\n" "Abort with ^D if you want to use the old connection $old_conn_name"
 fi
 if download_new_profile; then
     # we got a new profile, any old profile can be added to the ones to delete
@@ -391,7 +402,7 @@ if download_new_profile; then
         fi
     done
 elif [ -n "$old_conn" ]; then
-    echo Download failed, using older connection $old_conn_name
+    printf "%s\n" "Download failed, using older connection $old_conn_name"
     conn_name="$old_conn_name"
     if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
         delete_expired_connections "${expired_conn[@]}"
@@ -404,5 +415,5 @@ else
 fi
 
 # now connect this profile
-echo Connecting $conn_name
+printf "%s\n" "Connecting $conn_name"
 osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
