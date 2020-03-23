@@ -19,7 +19,7 @@ USAGE="Usage: xsvpn [-f | -n] [-v validity]
 -n      do NOT use defaults
 -v VAL  minimum certficate validity, default $MINVALID"
 
-args=$( getopt x:hnfv: $* ) || error "$USAGE"
+args=$( getopt hnfv: $* ) || error "$USAGE"
 set -- $args
 for i
 do
@@ -37,10 +37,6 @@ do
             ;;
         -n)
             USEDEFAULTS=false
-            ;;
-        -x)
-            DEBUG_FORMFILE=$2
-            shift
             ;;
         --)
             shift; break
@@ -391,22 +387,6 @@ delete_expired_connections() {
         fi
     done
 }
-
-# XXX debugging
-if [ -n "$DEBUG_FORMFILE" ]; then
-    default_profileId="fout"
-    setup_tempfiles
-    get_first_form < "$DEBUG_FORMFILE" > $form
-    echo The input is:
-    echo ---
-    cat $form
-    echo ---
-    handle_html_form < $form > $datatmp
-    echo ---
-    echo Data is:
-    cat $datatmp
-    exit 0
-fi
 
 # main program flow starts here
 setup_tempfiles
