@@ -2,20 +2,30 @@
 
 # default minimum time certificate must be valid, in a format understood by apple's BSD date "-v" switch
 MINVALID="8H"
+DEFAULTSFILE=$HOME/.xsvpn_defaults
 USEDEFAULTS=false
+if [ -e "$DEFAULTSFILE" ]; then
+    USEDEFAULTS=true
+fi
 
 error() {
     printf "%s\n" "$@" 1>&2
     exit -1
 }
 
-args=$( getopt hfv: $* ) || error "Usage: xsvpn [-f] [-v validity]"
+USAGE="Usage: xsvpn [-f | -n] [-v validity]
+
+-f      use defaults where possible (automatic if $DEFAULTSFILE exists)
+-n      do NOT use defaults
+-v VAL  minimum certficate validity, default $MINVALID"
+
+args=$( getopt x:hnfv: $* ) || error "$USAGE"
 set -- $args
 for i
 do
     case "$i" in
         -h)
-            error "Usage: xsvpn [-h] [-f] [-v validity]"
+            error "$USAGE"
             ;;
         -v)
             MINVALID=$2
@@ -24,6 +34,13 @@ do
             ;;
         -f)
             USEDEFAULTS=true
+            ;;
+        -n)
+            USEDEFAULTS=false
+            ;;
+        -x)
+            DEBUG_FORMFILE=$2
+            shift
             ;;
         --)
             shift; break
@@ -286,45 +303,71 @@ handle_html_form() {
         elif [ "$ttype" == "<select" ]; then
             unset seldata
             unset seldefault
+            unset selfirst
+            unset selfirstname
+            unset selshown
+            unset optdef
             declare -a seldata
             selname="$tname"
-            echo Please choose: >&2
+            optdef=$( eval "echo \$default_$selname" )
         elif [ "$ttype" == "<option" ]; then
             seldata=("${seldata[@]}" "$tvalue")
-            def=$( eval "echo \$default_$selname" )
-            if [ -n "$def" -a "$def" == "$tvalue" ]; then
+            if [ -n "$optdef" -a "$optdef" == "$tvalue" ]; then
                 seldefault="$tvalue"
             fi
             optname=$( sed 's/.*>//; s/[[:space:]]*$//' <<<"$hline" )
-            printf "%s" ". [$tvalue] $optname" >&2
+            if [ -z "$selfirst" ]; then
+                selfirst="$tvalue"
+                selfirstname="$optname"
+            elif [ -z "$selshown" ]; then
+                # second option. Offer a choice
+                echo Please choose: >&2
+                printf ". [%s] %s\n" "$selfirst" "$selfirstname" >&2
+                selshown=true
+            fi
+            if [ -n "$selshown" ]; then
+                printf "%s\n" ". [$tvalue] $optname" >&2
+            fi
         elif [ "$ttype" == "</select" ]; then
-            while true; do
-                readable_name=$( eval "echo \$label_$selname" 2> /dev/null )
-                : ${readable_name:="$selname"}
-                svalue=
-                printf "%s" "$readable_name" >&2
-                if [ -n "$seldefault" ] && $USEDEFAULTS; then
-                    printf ": %s\n" "$seldefault" >&2
-                    svalue="$seldefault"
-                elif [ -n "$seldefault" ]; then
-                    printf " [%s]" "$seldefault" >&2
-                fi
-                if [ -z "$svalue" ]; then
-                    printf "? " >&2
-                    read svalue < /dev/tty || return 1
-                    : ${svalue:="$seldefault"}
-                fi
-                if fgrep -q -w "$svalue" <<<"${seldata[@]}"; then
-                    printf "%s=%s\n" "$selname" "$svalue"
-                    break
-                elif $USEDEFAULTS; then
-                    # this should not happen.
-                    echo Argh, default $seldefault is not valid.
-                    USEDEFAULTS=false
-                else
-                    printf "%s\n" "Invalid choice, please choose one of: ${seldata[@]}" >&2
-                fi
-            done
+            readable_name=$( eval "echo \$label_$selname" 2> /dev/null )
+            : ${readable_name:="$selname"}
+            if [ -z "$selfirst" ]; then
+                # this should not happen
+                printf "%s\n" "Strange, $readable_name has no options" >&2
+            elif [ -z "$selshown" ]; then
+                # only one option, just mention what it is
+                printf "%s: %s\n" "$readable_name" "$selfirstname" >&2
+                printf "%s=%s\n" "$selname" "$selfirst"
+            else
+                while true; do
+                    svalue=
+                    printf "%s" "$readable_name" >&2
+                    if [ -n "$seldefault" ] && $USEDEFAULTS; then
+                        printf ": %s\n" "$seldefault" >&2
+                        svalue="$seldefault"
+                    elif [ -n "$seldefault" ]; then
+                        printf " [%s]" "$seldefault" >&2
+                    fi
+                    if [ -z "$svalue" ]; then
+                        printf "? " >&2
+                        read svalue < /dev/tty || return 1
+                        : ${svalue:="$seldefault"}
+                    fi
+                    if [ -z "$svalue" -a -n "$optdef" ]; then
+                        # this should not happen.
+                        echo Argh, default $optdef is not valid. >&2
+                        unset optdef
+                        USEDEFAULTS=false
+                    elif [ -z "$svalue" ]; then
+                        printf "%s\n%s\n" "Sorry, no default, please choose one of:" "${seldata[@]}" >&2
+                    elif fgrep -q -w "$svalue" <<<"${seldata[@]}"; then
+                        printf "%s=%s\n" "$selname" "$svalue"
+                        break
+                    else
+                        printf "%s\n%s\n" "Invalid choice, please choose one of:" "${seldata[@]}" >&2
+                    fi
+                done
+            fi
         fi
     done
     return 0
@@ -348,6 +391,22 @@ delete_expired_connections() {
         fi
     done
 }
+
+# XXX debugging
+if [ -n "$DEBUG_FORMFILE" ]; then
+    default_profileId="fout"
+    setup_tempfiles
+    get_first_form < "$DEBUG_FORMFILE" > $form
+    echo The input is:
+    echo ---
+    cat $form
+    echo ---
+    handle_html_form < $form > $datatmp
+    echo ---
+    echo Data is:
+    cat $datatmp
+    exit 0
+fi
 
 # main program flow starts here
 setup_tempfiles
