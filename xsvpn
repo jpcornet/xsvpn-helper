@@ -424,6 +424,10 @@ fi
 if download_new_profile; then
     if [ -r "$EXTRAFILE" ]; then
         printf "%s\n" "Adding custom settings from $EXTRAFILE"
+        # make sure last line ends in newline
+        if [ $( tail -1 "$new_vpn_profile" | wc -l ) -eq 0 ]; then
+            echo >> "$new_vpn_profile"
+        fi
         cat $EXTRAFILE >> "$new_vpn_profile"
     fi
     # we got a new profile, any old profile can be added to the ones to delete
