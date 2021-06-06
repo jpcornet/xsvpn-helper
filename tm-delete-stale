@@ -1,0 +1,150 @@
+#!/bin/bash
+
+set -e
+
+currbacks=$(mktemp)
+currdirs=$(mktemp)
+diffdirs=$(mktemp)
+
+cleanup_temp() {
+    rm -f $currbacks $currdirs $diffdirs
+}
+
+error() {
+    ret=$1
+    shift
+    printf %s\\n "$*"
+    cleanup_temp
+    exit $ret
+}
+
+trap 'cleanup_temp' 0
+trap 'error 1 "Interrupted"' 1 2 3 15
+
+if [ "$1" == "-a" ]; then
+    do_all=true
+else
+    do_all=false
+fi
+
+echo Listing current backups...
+tmutil listbackups > $currbacks || error 1 "Cannot list backups"
+bkdir=$( dirname "$( head -1 $currbacks )" )
+
+# make sure every backup is in bkdir
+while read l
+do
+    dir2=$( dirname "$l" )
+    if [ "$dir2" != "$bkdir" ]; then
+        echo Error, backups in differing dirs. Compare $l
+        head -1 $currbacks
+        exit 1
+    fi
+done < $currbacks
+
+echo Found $( wc -l < $currbacks ) current backups
+echo Checking stale directories under backup directory $bkdir
+# get list of directories in $bkdir
+while read i
+do
+    case "$i" in
+        [0-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]-[0-2][0-9][0-5][0-9][0-6][0-9])
+            fulldir="$bkdir/$i"
+            if [ -d "$fulldir" -a ! -L "$fulldir" ]; then
+                printf %s\\n "$fulldir" >> $currdirs
+            else
+                echo Strange item in $bkdir: $i
+            fi
+            ;;
+        [0-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]-[0-2][0-9][0-5][0-9][0-6][0-9].inProgress)
+            echo Hmm... looks like a backup is already in progress.
+            ;;
+        Latest | . | ..)
+            ;;
+        *)
+            echo Strange entry in $bkdir: $i
+            ;;
+    esac
+done <<END_LS
+$( ls -f "$bkdir" )
+END_LS
+
+# make sure every current backup is a directory
+cat $currbacks $currdirs $currdirs | sort | uniq -u > $diffdirs
+if [ -s $diffdirs ]; then
+    echo Does not compute. There are backups present that are not found as a directory:
+    while read d
+    do
+        ls -ld "$d"
+    done <$diffdirs
+    echo Aborting.
+    exit -1
+fi
+
+# determine stale directories
+cat $currbacks $currbacks $currdirs | sort | uniq -u > $diffdirs
+if [ ! -s $diffdirs ]; then
+    echo No stale TimeMachine directories
+    exit 2
+fi
+
+# if backup phase is "ThinningPostBackup", then there will always be 1 "stale" directory
+if tmutil status | egrep -q 'BackupPhase *= *ThinningPostBackup'; then
+    echo Regular backup is thinning, always expect one stale backup
+    is_thinning=true
+else
+    is_thinning=false
+fi
+
+# verify stale directories, there should not be dotfiles in the dirs
+echo These stale directories exist:
+set --
+count=0
+while read staled
+do
+    ok_dir=empty
+    while read f
+    do
+        case "$f" in
+            .[!.]* | ..?*)
+                ok_dir=false
+                echo In stale dir $staled, bad entry $f
+                ;;
+            . | ..)
+                ;;
+            *)
+                if [ "$ok_dir" == "empty" ]; then
+                    ok_dir=true
+                fi
+        esac
+    done <<END_LS
+$( ls -f "$staled" )
+END_LS
+    if [ "$ok_dir" == "true" ]; then
+        printf %s\\n "$staled"
+        set "$@" "$staled"
+        count=$(( $count + 1 ))
+    elif [ "$ok_dir" == "empty" ]; then
+        echo Empty stale directory: $staled
+        set "$@" "$staled"
+        count=$(( $count + 1 ))
+    else
+        echo This stale directory still contains dotfiles: $staled
+    fi
+done <$diffdirs
+
+if [ $count -eq 0 ]; then
+    error 0 "No deletable directories exist"
+elif $is_thinning && [ $count -eq 1 ]; then
+    error 0 "One stale directory, but backup is thinning. This is probably normal."
+elif $is_thinning && $do_all; then
+    echo Currently thinning, only doing 1 stale backup
+    do_all=false
+fi
+
+if ! $do_all; then
+    set -- "$1"
+fi
+
+echo Going to delete $@
+sudo tmutil delete "$@"
