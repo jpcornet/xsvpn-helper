@@ -4,6 +4,8 @@
 MINVALID="7H"
 DEFAULTSFILE=$HOME/.xsvpn_defaults
 USEDEFAULTS=false
+REMOTE=vpn.xs4all.net
+DELETE=true
 # a file with extra settings and routes. Eg:
 #   route 194.109.20.90 255.255.255.255 net_gateway default
 #   #viscosity dns off
@@ -20,11 +22,14 @@ error() {
 
 USAGE="Usage: xsvpn [-f | -n] [-v validity]
 
--f      use defaults where possible (automatic if $DEFAULTSFILE exists)
--n      do NOT use defaults
--v VAL  minimum certficate validity, default $MINVALID"
+-f         use defaults where possible (automatic if $DEFAULTSFILE exists)
+-n         do NOT use defaults
+-v VAL     minimum certficate validity, default $MINVALID
+-r remote  connect to remote, not $REMOTE
+-D         delete imported connection file after feeding it to Viscosity
+-K         keep imported connection file"
 
-args=$( getopt hnfv: $* ) || error "$USAGE"
+args=$( getopt hnfv:r:DK $* ) || error "$USAGE"
 set -- $args
 for i
 do
@@ -37,11 +42,21 @@ do
             shift
             date -v "+$MINVALID" >/dev/null 2>&1 || error "Invalid time period $MINVALID"
             ;;
+        -r)
+            REMOTE=$2
+            shift
+            ;;
         -f)
             USEDEFAULTS=true
             ;;
         -n)
             USEDEFAULTS=false
+            ;;
+        -D)
+            DELETE=true
+            ;;
+        -K)
+            DELETE=false
             ;;
         --)
             shift; break
@@ -53,8 +68,6 @@ done
 APP=/Applications/Viscosity.app
 [ -d "$APP" ] || error "You should have Viscosity installed"
 
-# where remote connections go
-REMOTE=vpn.xs4all.net
 # where we can download new connection lease
 VPNSITE=https://$REMOTE/
 # where Viscosity's connections live
@@ -598,3 +611,7 @@ fi
 # now connect this profile
 printf "%s\n" "Connecting $conn_name"
 osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
+if $DELETE; then
+    echo Deleting imported connection file
+    rm $new_vpn_profile
+fi
