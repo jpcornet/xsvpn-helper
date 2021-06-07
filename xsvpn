@@ -86,6 +86,8 @@ umask 077
 # initialize $LF with a linefeed, for better readability in sed scripts
 LF='
 '
+# and initialize TAB as a tab character
+TAB="$( echo -e '\t' )"
 
 setup_tempfiles() {
     # setup temp files
@@ -209,7 +211,7 @@ import_new_connection() {
             case "$confln" in
                 "# OpenVPN"*)
                     ;;
-                dev*|nobind*|remote-*|server-*|tls-*|ncp-*|cipher*|auth*|route*)
+                dev*|nobind*|remote-*|server-*|tls-*|ncp-*|cipher*|auth*|route*|reneg-*)
                     conftail="${conftail}${confln}$LF"
                     ;;
                 client)
@@ -300,7 +302,7 @@ download_new_profile() {
     else
         default_userName=${USER:-$(whoami)}
     fi
-    
+
     # fetch pages until we have the ovpn file...
     loc="$VPNSITE"
     declare -a data
@@ -315,6 +317,10 @@ download_new_profile() {
 
         # get content-type
         ct=$( sed -n '/^< [Cc]ontent-[Tt]ype: /{ s///; s/;.*//; s/[[:space:]]*$//; p;}' $controlout | tail -1 )
+        # in case there is a logout form, we never want to use that, so just take it out.
+        # This assumes the logout form is not on the same lines as other elements
+        sed -E '/<form[^>]*action="?[^>"]*logout/,/<\/form>/d' $htmlout > $form
+        mv $form $htmlout
         if [ "$ct" == "text/html" ] && grep -q '<form' $htmlout; then
             # output the stuff before the form.
             # in case of incorrect password, this also contains the error.
@@ -350,6 +356,17 @@ download_new_profile() {
             new_vpn_profile="$DOWNLOAD_FOLDER/$ovpn_file"
             mv $htmlout "$new_vpn_profile"
             break
+        elif [ "$ct" == "text/html" ] && egrep -q '<a[^>]*>[[:space:]]*[Cc]onfigur' $htmlout; then
+            # login was OK, now follow link to Configurthingy
+            newloc=$( egrep -o '<a[^>]*href=[^>]*>[[:space:]]*[Cc]onfigur' $htmlout | sed -E 's/<a[^>]*href="//; s/"[^>]*>.*//' )
+            if [[ "$newloc" =~ ^https?:/ ]]; then
+                loc="$newloc"
+            elif [ "${newloc:0:1}" == "/" ]; then
+                loc="${VPNSITE%/}$newloc"
+            else
+                loc="${loc%$( basename $loc )}$newloc"
+            fi
+            unset data
         else
             cat $controlout $htmlout
             cp $controlout /tmp/xsvpn-err.out
@@ -364,7 +381,8 @@ download_new_profile() {
 show_text_before_form() {
     # show stuff before form
     # remove any menu in <ul> tag.
-    sed -n '/<form/q; /<body>/,${ /<ul[^>]*menu/,/<\/ul/d; s/<[^>]*>//g; s/^ *//; s/ *$//; /^$/d; p; }'
+    # replace SPACE*TAB+SPACE* with newline for better readability.
+    sed -En '/<form/q; /<body>/,${ /<ul/,/<\/ul/d; s/<[^>]*>//g; s/^ *//; s/ *$//; /^$/d; s/ *'"$TAB"'+ */\'"$LF"'/; p; }'
 }
 
 get_first_form() {
@@ -404,6 +422,8 @@ handle_html_form() {
                 echo -n $readable_name >&2
                 if [ "$itype" == "password" ]; then
                     stty -echo < /dev/tty
+                    # make sure aborting after this leaves terminal in sane state
+                    trap 'stty echo < /dev/tty; exit -1' 1 2 3 15
                 fi
                 def=$( eval "echo \$default_$tname" 2> /dev/null )
                 dvalue=
@@ -415,13 +435,18 @@ handle_html_form() {
                 fi
                 if [ -z "$dvalue" ]; then
                     printf "? " >&2
-                    read dvalue < /dev/tty || return 1
+                    read dvalue < /dev/tty
+                    readok=$?
                     : ${dvalue:="$def"}
+                else
+                    readok=0
                 fi
                 if [ "$itype" == "password" ]; then
                     stty echo < /dev/tty
                     echo >&2
                 fi
+                # abort if reading value failed
+                [ $readok -eq 0 ] || return 1
                 printf "%s=%s\n" "$tname" "$dvalue"
                 if [ "$tname" == "userName" -a "$dvalue" != "$def" ]; then
                     printf "%s\n" $dvalue > $DEFAULT_USERNAME_FILE
@@ -523,95 +548,106 @@ delete_expired_connections() {
     done
 }
 
-# main program flow starts here
-setup_tempfiles
-get_active_vpn_connections > $conn_list
-if [ -s "$conn_list" ]; then
-    printf "%s\n" "Notice: This is connected: "$( cat "$conn_list" )
-fi
+# show connected VPNs, scan present connections and connect if one is available
+handle_current_vpns() {
+    get_active_vpn_connections > $conn_list
+    if [ -s "$conn_list" ]; then
+        printf "%s\n" "Notice: This is connected: "$( cat "$conn_list" )
+    fi
 
-scan_configured_vpn_connections
-if [ -n "$conn_name" ]; then
-    if [ ! -s "$conn_list" -a ${#expired_conn[@]} -gt 0 ]; then
-        delete_expired_connections "${expired_conn[@]}"
-        # restart Viscosity
-        open -a $APP
-        sleep 1
+    scan_configured_vpn_connections
+    if [ -n "$conn_name" ]; then
+        if [ ! -s "$conn_list" -a ${#expired_conn[@]} -gt 0 ]; then
+            delete_expired_connections "${expired_conn[@]}"
+            # restart Viscosity
+            open -a $APP
+            sleep 1
+        fi
+        printf "%s\n" "Connecting $conn_name, which is valid until $enddate"
+        osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
+        exit 0
+    elif [ -z "$old_conn" ]; then
+        printf "%s\n" "Notice: no valid connections to $REMOTE exist"
+    elif [ -s "$conn_list" ]; then
+        printf "%s\n" "Only expired connections to $REMOTE, but some connections already active, cannot cleanup old $old_conn"
     fi
-    printf "%s\n" "Connecting $conn_name, which is valid until $enddate"
-    osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
-    exit 0
-elif [ -z "$old_conn" ]; then
-    printf "%s\n" "Notice: no valid connections to $REMOTE exist"
-elif [ -s "$conn_list" ]; then
-    printf "%s\n" "Only expired connections to $REMOTE, but some connections already active, cannot cleanup old $old_conn"
-fi
+}
 
-echo Downloading new VPN profile...
-if [ -n "$old_conn" ]; then
-    printf "%s\n" "Abort with ^D if you want to use the old connection $old_conn_name"
-fi
-if download_new_profile; then
-    # make sure last line ends in newline
-    if [ $( tail -1 "$new_vpn_profile" | wc -l ) -eq 0 ]; then
-        echo >> "$new_vpn_profile"
-    fi
-    if [ -r "$EXTRAFILE" ]; then
-        printf "%s\n" "Adding custom settings from $EXTRAFILE"
-        cat $EXTRAFILE >> "$new_vpn_profile"
-    fi
-    # we got a new profile, any old profile can be added to the ones to delete
+download_and_import() {
+    echo Downloading new VPN profile...
     if [ -n "$old_conn" ]; then
-        expired_conn=("${expired_conn[@]}" "$old_conn")
+        printf "%s\n" "Abort with ^D if you want to use the old connection $old_conn_name"
     fi
-    if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
-        delete_expired_connections "${expired_conn[@]}"
-    else
-        echo Stopping viscosity to import new connection
-        osascript -e 'tell application "Viscosity" to quit'
-    fi
-    # add new profile to connections
-    echo Importing new connection...
-    if import_new_connection "$new_vpn_profile"; then
-        open -a "$APP"
-        # rescan connections to set conn_name
-        scan_configured_vpn_connections
-        if [ -z "$conn_name" ]; then
-            error "VPN profile import failed? Stop."
+    if download_new_profile; then
+        # make sure last line ends in newline
+        if [ $( tail -1 "$new_vpn_profile" | wc -l ) -eq 0 ]; then
+            echo >> "$new_vpn_profile"
+        fi
+        if [ -r "$EXTRAFILE" ]; then
+            printf "%s\n" "Adding custom settings from $EXTRAFILE"
+            cat $EXTRAFILE >> "$new_vpn_profile"
+        fi
+        # we got a new profile, any old profile can be added to the ones to delete
+        if [ -n "$old_conn" ]; then
+            expired_conn=("${expired_conn[@]}" "$old_conn")
+        fi
+        if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
+            delete_expired_connections "${expired_conn[@]}"
+        else
+            echo Stopping viscosity to import new connection
+            osascript -e 'tell application "Viscosity" to quit'
+        fi
+        # add new profile to connections
+        echo Importing new connection...
+        if import_new_connection "$new_vpn_profile"; then
+            open -a "$APP"
+            # rescan connections to set conn_name
+            scan_configured_vpn_connections
+            if [ -z "$conn_name" ]; then
+                error "VPN profile import failed? Stop."
+            fi
+        else
+            open -a "$APP" "$new_vpn_profile"
+            # wait some time until viscosity imported it
+            max_wait=30
+            while true; do
+                sleep 1
+                max_wait=$(( $max_wait - 1 ))
+                # rescan connections
+                scan_configured_vpn_connections
+                if [ -n "$conn_name" ]; then
+                    break
+                elif [ $max_wait -le 0 ]; then
+                    error "Error waiting for viscosity to import connection. Stop."
+                fi
+            done
+        fi
+    elif [ -n "$old_conn" ]; then
+        printf "%s\n" "Download failed, using older connection $old_conn_name"
+        conn_name="$old_conn_name"
+        if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
+            delete_expired_connections "${expired_conn[@]}"
+            open -a "$APP"
+            # allow viscosity some time to restart
+            sleep 1
         fi
     else
-        open -a "$APP" "$new_vpn_profile"
-        # wait some time until viscosity imported it
-        max_wait=30
-        while true; do
-            sleep 1
-            max_wait=$(( $max_wait - 1 ))
-            # rescan connections
-            scan_configured_vpn_connections
-            if [ -n "$conn_name" ]; then
-                break
-            elif [ $max_wait -le 0 ]; then
-                error "Error waiting for viscosity to import connection. Stop."
-            fi
-        done
+        error "Cannot download profile, and no usable older profile. Stop"
     fi
-elif [ -n "$old_conn" ]; then
-    printf "%s\n" "Download failed, using older connection $old_conn_name"
-    conn_name="$old_conn_name"
-    if [ ! -s $conn_list -a ${#expired_conn[@]} -gt 0 ]; then
-        delete_expired_connections "${expired_conn[@]}"
-        open -a "$APP"
-        # allow viscosity some time to restart
-        sleep 1
-    fi
-else
-    error "Cannot download profile, and no usable older profile. Stop"
-fi
+}
 
-# now connect this profile
-printf "%s\n" "Connecting $conn_name"
-osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
-if $DELETE; then
-    echo Deleting imported connection file
-    rm $new_vpn_profile
-fi
+connect_vpn() {
+    # now connect this profile
+    printf "%s\n" "Connecting $conn_name"
+    osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
+    if $DELETE && -n "$new_vpn_profile"; then
+        echo Deleting imported connection file
+        rm $new_vpn_profile
+    fi
+}
+
+# main program flow starts here
+setup_tempfiles
+handle_current_vpns
+download_and_import
+connect_vpn
