@@ -640,7 +640,7 @@ connect_vpn() {
     # now connect this profile
     printf "%s\n" "Connecting $conn_name"
     osascript -e 'tell application "Viscosity" to connect "'$conn_name'"'
-    if $DELETE && -n "$new_vpn_profile"; then
+    if $DELETE && [ -n "$new_vpn_profile" ]; then
         echo Deleting imported connection file
         rm $new_vpn_profile
     fi
