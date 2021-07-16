@@ -28,8 +28,9 @@ else
 fi
 
 echo Listing current backups...
-tmutil listbackups > $currbacks || error 1 "Cannot list backups"
+sudo tmutil listbackups -m > $currbacks || error 1 "Cannot list backups"
 bkdir=$( dirname "$( head -1 $currbacks )" )
+[ -d "$bkdir" ] || error 1 "Not a directory: $bkdir"
 
 # make sure every backup is in bkdir
 while read l
@@ -98,7 +99,7 @@ fi
 
 # verify stale directories, there should not be dotfiles in the dirs
 echo These stale directories exist:
-set --
+declare -a delparams
 count=0
 while read staled
 do
@@ -122,29 +123,30 @@ $( ls -f "$staled" )
 END_LS
     if [ "$ok_dir" == "true" ]; then
         printf %s\\n "$staled"
-        set "$@" "$staled"
-        count=$(( $count + 1 ))
     elif [ "$ok_dir" == "empty" ]; then
         echo Empty stale directory: $staled
-        set "$@" "$staled"
-        count=$(( $count + 1 ))
     else
-        echo This stale directory still contains dotfiles: $staled
+        echo This stale directory still contains dotfiles: $staled, skipping
+        continue
     fi
+    delparams=("${delparams[@]}" "$staled")
+    count=$(( $count + 1 ))
 done <$diffdirs
 
 if [ $count -eq 0 ]; then
     error 0 "No deletable directories exist"
 elif $is_thinning && [ $count -eq 1 ]; then
     error 0 "One stale directory, but backup is thinning. This is probably normal."
-elif $is_thinning && $do_all; then
-    echo Currently thinning, only doing 1 stale backup
-    do_all=false
+elif $is_thinning; then
+    error 1 "Currently thinning, will not delete backups at the same time."
 fi
 
 if ! $do_all; then
-    set -- "$1"
+    delparams=("${delparams[0]}")
+    count=1
 fi
 
-echo Going to delete $@
-sudo tmutil delete "$@"
+echo Going to delete $count stale dirs: ${delparams[@]}
+for x in "${delparams[@]}"; do
+    sudo tmutil delete -p "$x"
+done
