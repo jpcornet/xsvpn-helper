@@ -6,6 +6,10 @@ DEFAULTSFILE=$HOME/.xsvpn_defaults
 USEDEFAULTS=false
 REMOTE=vpn.xs4all.net
 DELETE=true
+prefer_tcp=false
+prefer_udp=false
+confremote_tcp=""
+confremote_udp=""
 # a file with extra settings and routes. Eg:
 #   route 194.109.20.90 255.255.255.255 net_gateway default
 #   #viscosity dns off
@@ -27,9 +31,11 @@ USAGE="Usage: xsvpn [-f | -n] [-v validity]
 -v VAL     minimum certficate validity, default $MINVALID
 -r remote  connect to remote, not $REMOTE
 -D         delete imported connection file after feeding it to Viscosity
--K         keep imported connection file"
+-K         keep imported connection file
+-t         prefer tcp connections in import
+-u         prefer udp connections in import"
 
-args=$( getopt hnfv:r:DK $* ) || error "$USAGE"
+args=$( getopt hnftuv:r:DK $* ) || error "$USAGE"
 set -- $args
 for i
 do
@@ -57,6 +63,12 @@ do
             ;;
         -K)
             DELETE=false
+            ;;
+        -t)
+            prefer_tcp=true
+            ;;
+        -u)
+            prefer_udp=true
             ;;
         --)
             shift; break
@@ -222,13 +234,26 @@ import_new_connection() {
                     # verbosity setting, ignored.
                     ;;
                 "remote "*)
-                    if [ -n "$confremote" ]; then
-                        printf "%s\n" "Too many remote lines in conf: $confln" 1>&2
-                        rm -f "$CONFDIR"/*
-                        rmdir "$CONFDIR"
-                        return 1
-                    fi
-                    confremote="$confln"
+                    case "$confln" in
+                    *tcp)
+                        if [ -n "$remote_tcp" ]; then
+                            printf "%s\n" "Too many remote lines in conf: $confln" 1>&2
+                            rm -f "$CONFDIR"/*
+                            rmdir "$CONFDIR"
+                            return 1
+                        fi
+                        confremote_tcp="$confln"
+                        ;;
+                    *udp)
+                        if [ -n "$remote_udp" ]; then
+                            printf "%s\n" "Too many remote lines in conf: $confln" 1>&2
+                            rm -f "$CONFDIR"/*
+                            rmdir "$CONFDIR"
+                            return 1
+                        fi
+                        confremote_udp="$confln"
+                        ;;
+                    esac
                     ;;
                 "#viscosity "*)
                     confhead="${confhead}$confln$LF"
@@ -262,6 +287,14 @@ import_new_connection() {
             esac
         fi
     done < "$infile"
+    if $prefer_tcp && [ -n "$confremote_tcp" ]; then
+        confremote="$confremote_tcp"
+    elif $prefer_udp && [ -n  "$confremote_udp" ]; then
+        confremote="$confremote_udp"
+    else
+        confremote="$confremote_tcp"
+    fi
+
     if [ -n "$wrfile" ]; then
         printf "%s\n" "Unexpected EOF reading $infile, writing $wrfile" 1>&2
         rm -r "$CONFDIR"/*
