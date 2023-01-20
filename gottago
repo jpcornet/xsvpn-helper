@@ -28,20 +28,10 @@ for my $arg ( @ARGV ) {
 # "now" means "do not wait"
 $opt{wait} = 0 if $opt{now};
 
-# mark dependencies. Contains key => [ val, val, ... ]; key and val are either a path or "* ITEM"
-my %dependent;
-# anything that's still "present" is marked here. For dependency checking.
-my %present;
-# dependency items
-my $dep_item_vpn = '* VPN';
-my $dep_item_backup = '* BACKUP';
-my $prevused_key = '* previously used';
-
 # check if a backup is running
-my $tm_status = tm_info();
+my $tm_status = tm_status();
 my $backup_was_running;
 if ( $tm_status->{Running} ) {
-    $present{$dep_item_backup} = 1;
     backup_running($tm_status);
     $backup_was_running++;
 }
@@ -384,12 +374,10 @@ sub tm_status {
 
 sub tm_destinfo {
     my $tm_str = do_qx(qw(tmutil destinationinfo));
-    my @chunks = split /^(> )?===+\r?\n/m, $tm_str;
-    shift @chunks if !length($chunks[0]);
+    my @chunks = split /^(?:> )?===+\r?\n/m, $tm_str;
+    shift @chunks if !$chunks[0];
     my @ret;
-    while ( @chunks ) {
-        my $isprev = shift @chunks;
-        my $c = shift @chunks;
+    for my $c ( @chunks ) {
         my %cinfo;
         for my $line ( split /\r?\n/, $c ) {
             my ($key, $value) = $line =~ /^(\S(?:[^:]*\S)?)\s*:\s*(\S.*)$/;
@@ -405,27 +393,9 @@ sub tm_destinfo {
                 warn "Do not understand line from tmutil destinationinfo: $line\n";
             }
         }
-        if ( $isprev ) {
-            # place previously used backup in front
-            $cinfo{$prevused_key} = 1;
-            @ret = ( \%cinfo, @ret );
-        }
-        else {
-            push @ret, \%cinfo;
-        }
+        push @ret, \%cinfo;
     }
     return \@ret;
-}
-
-sub tm_info {
-    my $status = tm_status();
-    if ( my $did = $status->{DestinationID} ) {
-        # some destination is present
-        my $tmdest = tm_destinfo();
-        # lookup current destination
-        my $cur_dest = grep { $_->{ID} eq $did } @$tmdest;
-        
-    }
 }
 
 sub hdi_info {
