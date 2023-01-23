@@ -25,6 +25,14 @@ connectie download.
 Script om netjes je backup af te sluiten, en disks te unmounten, zodat je je laptop
 kunt dichtklappen.
 
+* tm-delete-stale
+
+Script om half-opgeruimde TimeMachine snapshots te wissen. Soms vergeet MacOS om TimeMachine
+snapshots helemaal weg te halen, er blijft dan een directory over die niet als snapshot
+gebruikt kan worden, maar die wel ruimte inneemt. Bijvoorbeeld als je tijdens de cleanup
+een netwerk issue hebt of je laptop dichtklapt. Dit script zoekt die half gedelete directories
+op en haalt ze netjes weg.
+
 * fix-time-machine-sparsebundle-nas-based-backup-errors.html
 
 Webpage over hoe je errors in je TimeMachine zelf kunt fixen, via fsck\_hfs, hoewel
