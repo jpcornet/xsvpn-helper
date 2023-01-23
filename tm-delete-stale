@@ -2,12 +2,22 @@
 
 set -e
 
+if [ $(id -u) -ne 0 ]; then
+    echo Need root privs to delete stale TimeMachine directories
+    exec sudo $0 "$@"
+    exit -1
+fi
+
 currbacks=$(mktemp)
 currdirs=$(mktemp)
 diffdirs=$(mktemp)
 
+is_disabled=false
+usedir_pid=
 cleanup_temp() {
     rm -f $currbacks $currdirs $diffdirs
+    [ -n "$usedir_pid" ] && kill $usedir_pid
+    $is_disabled && tmutil enable
 }
 
 error() {
@@ -18,17 +28,40 @@ error() {
     exit $ret
 }
 
+usage() {
+    echo "Usage:"
+    echo
+    echo "  tm-delete-stale [-1] [-c] [-d] [-w]"
+    echo
+    echo "Options:"
+    echo "  -1   Only One stale backup to delete (default all)"
+    echo "  -w   Do not Wait until backup is finished (by default, wait until running backup is done)"
+    echo "  -d   do not Disable backups while deleting (by default, suspends new backups)"
+    echo "  -c   Only Check if stale backups exist, and report them."
+    exit 1
+}
+
 trap 'cleanup_temp' 0
 trap 'error 1 "Interrupted"' 1 2 3 15
 
-if [ "$1" == "-a" ]; then
-    do_all=true
-else
-    do_all=false
-fi
+do_one=false
+do_wait=true
+do_disable=true
+only_check=false
+while getopts 1cdhw opt
+do
+    case "$opt" in
+    1)  do_one=true;;
+    c)  only_check=true
+        do_disable=false;;
+    d)  do_disable=false;;
+    w)  do_wait=false;;
+    h|?)    usage;;
+    esac
+done
 
 echo Listing current backups...
-sudo tmutil listbackups -m > $currbacks || error 1 "Cannot list backups"
+tmutil listbackups -m > $currbacks || error 1 "Cannot list backups"
 bkdir=$( dirname "$( head -1 $currbacks )" )
 [ -d "$bkdir" ] || error 1 "Not a directory: $bkdir"
 
@@ -42,6 +75,51 @@ do
         exit 1
     fi
 done < $currbacks
+
+hug_dir() {
+    parent="$$"
+    (
+        cd "$1"
+        while kill -0 $parent
+        do
+            sleep 10
+        done
+    ) &
+    usedir_pid=$!
+}
+
+if $do_wait && tmutil status | grep -q 'Running = 1'; then
+    echo "A backup is currently in progress, waiting for current backup to finish."
+    # "use" the backup directory to prevent current backup from unmounting backup dir while we're running
+    # cannot use $(hug_dir) for some reason, subprocess will not work. bash bug?
+    hug_dir "$bkdir"
+    while tmutil status | grep -q 'Running = 1' && sleep 30
+    do
+        echo -n .
+    done
+    echo
+    # rescan current backups
+    echo Rescanning current backups...
+    tmutil listbackups -m > $currbacks || error 1 "Cannot list backups"
+fi
+
+if $do_disable && tmutil status | grep -q 'Running = 0'; then
+    is_disabled=true
+    tmutil disable
+    # make sure there wasn't a race condition
+    if tmutil status | grep -q 'Running = 1'; then
+        echo -n "Uhoh, race condition, backup started while disabling automatic backups"
+        tmutil stopbackup
+        while tmutil status | grep -q 'Running = 1' && sleep 10
+        do
+            echo -n .
+        done
+        echo
+    fi
+elif ! $do_one; then
+    echo Not disabling backups, so forcing to only delete one stale backup at most
+    do_one=true
+fi
 
 echo Found $( wc -l < $currbacks ) current backups
 echo Checking stale directories under backup directory $bkdir
@@ -60,7 +138,7 @@ do
         [0-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]-[0-2][0-9][0-5][0-9][0-6][0-9].inProgress)
             echo Hmm... looks like a backup is already in progress.
             ;;
-        Latest | . | ..)
+        Latest | . | .. | com.apple.TimeMachine.inheritance.plist)
             ;;
         *)
             echo Strange entry in $bkdir: $i
@@ -141,12 +219,17 @@ elif $is_thinning; then
     error 1 "Currently thinning, will not delete backups at the same time."
 fi
 
-if ! $do_all; then
+if $do_one; then
     delparams=("${delparams[0]}")
     count=1
 fi
 
-echo Going to delete $count stale dirs: ${delparams[@]}
-for x in "${delparams[@]}"; do
-    sudo tmutil delete -p "$x"
-done
+if $only_check; then
+    echo Would delete $count stale dirs: ${delparams[@]}
+    exit $count
+else
+    echo Deleting $count stale dirs: ${delparams[@]}
+    for x in "${delparams[@]}"; do
+        tmutil delete -p "$x"
+    done
+fi
