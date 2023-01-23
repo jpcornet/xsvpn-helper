@@ -37,4 +37,6 @@ op en haalt ze netjes weg.
 
 Webpage over hoe je errors in je TimeMachine zelf kunt fixen, via fsck\_hfs, hoewel
 dat enorm lang duurt. Ik heb hier zelf allerlei aantekeningen aan toegevoegd.
+Origineel van:
+https://www.garth.org/archives/2011,08,27,169,fix-time-machine-sparsebundle-nas-based-backup-errors.html
 
